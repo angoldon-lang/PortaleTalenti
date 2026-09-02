@@ -80,18 +80,44 @@ scripts/
 
 ## Avvio in locale
 
-Servono Node 20+ e un PostgreSQL raggiungibile.
+Servono **Node 20.12+** (verificato su Node 22 LTS) e un PostgreSQL
+raggiungibile. La soglia 20.12 è imposta da `process.loadEnvFile()`, usato dallo
+script di seed.
+
+**1. Il database.** Se non hai già un PostgreSQL locale, con Docker:
 
 ```bash
-git clone <repo> && cd PortaleTalenti
-npm install
-cp .env.example .env          # poi compila DATABASE_URL e AUTH_SECRET
-npx prisma migrate dev        # crea le tabelle
+docker run --name pt-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16
+docker exec -it pt-db createdb -U postgres portale_talenti
+```
+
+**2. Il progetto.**
+
+```bash
+git clone https://github.com/angoldon-lang/PortaleTalenti.git
+cd PortaleTalenti
+git checkout claude/cliftonstrengths-portal-gnrawh
+npm install                   # genera anche il client Prisma
+cp .env.example .env
+```
+
+**3. Le variabili.** Apri `.env` e compila almeno:
+
+```bash
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/portale_talenti?schema=public"
+AUTH_SECRET="<incolla qui l'output di: openssl rand -base64 32>"
+```
+
+**4. Tabelle, dati e avvio.**
+
+```bash
+npx prisma migrate deploy     # applica la migrazione esistente
 npm run db:seed               # 12 temi, 66 item, utenti demo
 npm run dev                   # http://localhost:3000
 ```
 
-Genera il segreto con `openssl rand -base64 32`.
+In sviluppo, se modifichi lo schema, usa `npx prisma migrate dev` al posto di
+`migrate deploy` per generare una nuova migrazione.
 
 ### Utenti creati dal seed
 
@@ -137,6 +163,27 @@ completa l'accesso: l'app funziona comunque con email e password.
 | `npm run db:studio` | Prisma Studio |
 | `npx tsx scripts/simulate.ts` | valida l'algoritmo su un profilo noto |
 | `node scripts/e2e.mjs` | smoke test end-to-end (richiede il server avviato) |
+
+---
+
+## Se qualcosa non parte
+
+| Sintomo | Causa e rimedio |
+| --- | --- |
+| `Environment variable not found: DATABASE_URL` | manca il file `.env` (non `.env.example`) nella radice del progetto, oppure la riga è commentata |
+| `Can't reach database server at localhost:5432` | PostgreSQL non è avviato, o la porta è diversa da quella in `DATABASE_URL` |
+| `database "portale_talenti" does not exist` | il server c'è ma il database no: crealo con `createdb portale_talenti` |
+| `Nessuna domanda attiva: esegui il seed del database` | migrazione applicata ma seed non eseguito: `npm run db:seed` |
+| `MissingSecret` / errore su `/login` | `AUTH_SECRET` vuoto in `.env`: genera con `openssl rand -base64 32` |
+| Il pulsante Google non completa l'accesso | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` non compilati. L'accesso con email e password funziona comunque |
+| `process.loadEnvFile is not a function` durante il seed | Node più vecchio di 20.12: aggiorna Node |
+| Porta 3000 occupata | `npm run dev -- -p 3001` (e allinea `AUTH_URL`) |
+
+Per ripartire da zero sul database:
+
+```bash
+npx prisma migrate reset     # cancella i dati, riapplica lo schema, riesegue il seed
+```
 
 ---
 
