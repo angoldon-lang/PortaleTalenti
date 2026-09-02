@@ -101,6 +101,19 @@ npm install                   # genera anche il client Prisma
 cp .env.example .env
 ```
 
+> **Se npm mostra `install-scripts ... not yet covered by allowScripts`**
+> il tuo npm sta bloccando gli script di installazione, quindi il client
+> Prisma **non** è stato generato e l'app partirebbe con
+> `Cannot find module '.prisma/client/default'`. Rimedio:
+>
+> ```bash
+> npx prisma generate
+> ```
+>
+> In alternativa autorizza gli script una volta per tutte con
+> `npm install-scripts approve @prisma/client` (e `prisma`, `@prisma/engines`,
+> `esbuild`, `unrs-resolver`).
+
 **3. Le variabili.** Apri `.env` e compila almeno:
 
 ```bash
@@ -166,6 +179,28 @@ completa l'accesso: l'app funziona comunque con email e password.
 
 ---
 
+## Nota sulle dipendenze
+
+`package.json` contiene due `overrides`, entrambi necessari per avere
+`npm audit` pulito senza upgrade breaking:
+
+| Override | Perché |
+| --- | --- |
+| `postcss: ^8.5.26` | Next 15 pinna internamente `postcss@8.4.31`, colpito da quattro advisory (XSS nello stringify, letture arbitrarie via `sourceMappingURL`). L'unico fix ufficiale sarebbe Next 16, un major: l'override porta la copia annidata alla 8.5.26, un salto di patch dentro la stessa minor |
+| `deepmerge-ts: ^8.0.2` | `@prisma/config` pinna `deepmerge-ts@7.1.5` (stack exhaustion su grafi ricorsivi). Nessuna versione di Prisma lo risolve: anche l'ultima `@prisma/config` resta sulla 7.1.5 |
+
+Dopo gli override: **0 vulnerabilità**, con build, typecheck, `prisma generate`,
+`migrate status`, seed e flusso end-to-end verificati.
+
+Se aggiorni Next alla 16 o Prisma a una versione che adotta `deepmerge-ts` 8,
+rimuovi il rispettivo override e riesegui `npm audit`.
+
+Durante la build Prisma segnala che `package.json#prisma` è deprecato e sarà
+rimosso in Prisma 7: è solo un avviso, la migrazione a `prisma.config.ts` andrà
+fatta insieme all'upgrade a Prisma 7.
+
+---
+
 ## Se qualcosa non parte
 
 | Sintomo | Causa e rimedio |
@@ -176,6 +211,7 @@ completa l'accesso: l'app funziona comunque con email e password.
 | `Nessuna domanda attiva: esegui il seed del database` | migrazione applicata ma seed non eseguito: `npm run db:seed` |
 | `MissingSecret` / errore su `/login` | `AUTH_SECRET` vuoto in `.env`: genera con `openssl rand -base64 32` |
 | Il pulsante Google non completa l'accesso | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` non compilati. L'accesso con email e password funziona comunque |
+| `Cannot find module '.prisma/client/default'` | il postinstall di `@prisma/client` non è stato eseguito (npm con `allowScripts` attivo): lancia `npx prisma generate` |
 | `process.loadEnvFile is not a function` durante il seed | Node più vecchio di 20.12: aggiorna Node |
 | Porta 3000 occupata | `npm run dev -- -p 3001` (e allinea `AUTH_URL`) |
 
