@@ -1,0 +1,271 @@
+// ---------------------------------------------------------------------------
+// Portale Talenti — schema dati
+// PostgreSQL + Prisma
+// ---------------------------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================================================================
+// MODULO 1 — Autenticazione, utenti e ruoli
+// ===========================================================================
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  /// Hash bcrypt: null per gli utenti che accedono solo via Google OAuth.
+  passwordHash  String?
+  emailVerified DateTime?
+  role          Role      @default(USER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts     Account[]
+  sessions     Session[]
+  testSessions TestSession[]
+  results      TestResult[]
+
+  @@index([role])
+  @@map("users")
+}
+
+/// Account OAuth collegati (Google). Richiesto dall'adapter Auth.js.
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+/// Presente per compatibilità con l'adapter Auth.js (la strategia attiva è JWT).
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ===========================================================================
+// MODULO 3 — Temi di talento, domande, risposte e risultati
+// ===========================================================================
+
+/// Le 4 macro-aree del modello Gallup CliftonStrengths.
+enum Domain {
+  EXECUTING // Esecuzione
+  INFLUENCING // Influenza
+  RELATIONSHIP // Relazioni
+  STRATEGIC // Pensiero Strategico
+}
+
+model TalentTheme {
+  id     String @id @default(cuid())
+  /// Identificatore stabile usato dal motore di calcolo (es. "realizzatore").
+  slug   String @unique
+  name   String
+  domain Domain
+
+  /// Claim di una riga mostrato nelle card della Top 5.
+  tagline         String
+  /// Descrizione approfondita del tema (2-4 paragrafi).
+  fullDescription String   @db.Text
+  /// Come suona il tema quando lavora al meglio.
+  strengths       String[]
+  /// Punti ciechi: il lato ombra del talento quando è sovra-utilizzato.
+  blindSpots      String[]
+  /// Azioni concrete per allenare il tema.
+  actionTips      String[]
+  /// Professioni / contesti in cui il tema rende di più.
+  thrivesIn       String[]
+
+  leftInQuestions  Question[]   @relation("LeftTheme")
+  rightInQuestions Question[]   @relation("RightTheme")
+  themeScores      ThemeScore[]
+
+  @@index([domain])
+  @@map("talent_themes")
+}
+
+// ===========================================================================
+// MODULO 2 — Questionario a coppie di affermazioni contrapposte
+// ===========================================================================
+
+model Question {
+  id       String @id @default(cuid())
+  /// Ordine di somministrazione (1..N).
+  position Int    @unique
+
+  leftStatement  String @db.Text
+  rightStatement String @db.Text
+
+  leftThemeId  String
+  rightThemeId String
+  leftTheme    TalentTheme @relation("LeftTheme", fields: [leftThemeId], references: [id])
+  rightTheme   TalentTheme @relation("RightTheme", fields: [rightThemeId], references: [id])
+
+  /// Peso del contributo dell'item al tema di sinistra / destra (0..1].
+  leftWeight  Float @default(1)
+  rightWeight Float @default(1)
+
+  /// Permette di ritirare un item senza perdere lo storico delle risposte.
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  responses Response[]
+
+  @@index([isActive, position])
+  @@map("questions")
+}
+
+enum TestStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+/// Una compilazione del questionario. Consente di riprendere da dove si era rimasti.
+model TestSession {
+  id     String     @id @default(cuid())
+  userId String
+  status TestStatus @default(IN_PROGRESS)
+
+  /// Numero di item già risposti: indice di ripresa del questionario.
+  answeredCount  Int @default(0)
+  /// Totale item attivi al momento dell'avvio (congelato per coerenza).
+  totalQuestions Int
+  /// Secondi a disposizione per item; 0 = timer disattivato.
+  timerSeconds   Int @default(20)
+
+  startedAt      DateTime  @default(now())
+  lastActivityAt DateTime  @updatedAt
+  completedAt    DateTime?
+
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  responses Response[]
+  result    TestResult?
+
+  @@index([userId, status])
+  @@map("test_sessions")
+}
+
+model Response {
+  id            String @id @default(cuid())
+  testSessionId String
+  questionId    String
+
+  /// Scala Likert a 7 punti: 1 = pienamente l'affermazione di sinistra,
+  /// 4 = neutro, 7 = pienamente l'affermazione di destra.
+  value Int
+
+  /// true se il valore è stato salvato come "neutro" per scadenza del timer.
+  timedOut  Boolean @default(false)
+  /// Tempo di reazione in millisecondi (metrica di istintività).
+  latencyMs Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  testSession TestSession @relation(fields: [testSessionId], references: [id], onDelete: Cascade)
+  question    Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([testSessionId, questionId])
+  @@index([questionId])
+  @@map("responses")
+}
+
+// ===========================================================================
+// MODULO 4 — Risultati e report
+// ===========================================================================
+
+model TestResult {
+  id            String @id @default(cuid())
+  testSessionId String @unique
+  userId        String
+
+  /// Punteggi 0-100 per ciascuna delle 4 macro-aree (normalizzati a somma 100).
+  executingScore    Float
+  influencingScore  Float
+  relationshipScore Float
+  strategicScore    Float
+
+  /// Slug dei 5 temi dominanti, in ordine di punteggio decrescente.
+  topThemeSlugs String[]
+
+  /// Quota di risposte scadute per timeout: indicatore di affidabilità.
+  timeoutRatio    Float @default(0)
+  /// Durata complessiva della compilazione, in secondi.
+  durationSeconds Int?
+
+  computedAt DateTime @default(now())
+
+  testSession TestSession  @relation(fields: [testSessionId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  themeScores ThemeScore[]
+
+  @@index([userId, computedAt])
+  @@map("test_results")
+}
+
+/// Punteggio per singolo tema, denormalizzato per query analitiche veloci.
+model ThemeScore {
+  id           String @id @default(cuid())
+  testResultId String
+  themeId      String
+
+  /// Punteggio grezzo 0-100 (media ponderata delle risposte sull'item).
+  rawScore        Float
+  /// Punteggio normalizzato intra-individuo (z-score ipsativo riscalato 0-100).
+  normalizedScore Float
+  /// Posizione in classifica: 1 = talento dominante.
+  rank            Int
+
+  testResult TestResult  @relation(fields: [testResultId], references: [id], onDelete: Cascade)
+  theme      TalentTheme @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@unique([testResultId, themeId])
+  @@index([themeId, normalizedScore])
+  @@map("theme_scores")
+}
