@@ -244,6 +244,19 @@ rilanciarlo aggiorna i contenuti senza duplicare né cancellare risposte.
 Se il server era già avviato, riavvialo: i contenuti dei temi sono letti dal
 database a ogni richiesta, ma il codice no.
 
+### Se un questionario non compare
+
+```bash
+npm run db:diagnosi                          # stato dell'installazione
+npm run db:diagnosi -- persona@azienda.it    # che cosa vede quella persona
+```
+
+Controlla nell'ordine le tre cause possibili — schema non migrato, seed non
+eseguito, ruolo organizzativo che non lo abilita — e per ciascuna stampa il
+comando che la risolve. La terza è la più facile da non sospettare: i
+questionari esistono nel database, ma il ruolo di chi guarda non li ha
+abilitati, e la pagina mostra solo ciò che quel ruolo prevede.
+
 ### Se una migrazione si interrompe
 
 Prisma segna la migrazione come fallita e blocca le successive (`P3018`).
@@ -270,7 +283,8 @@ pg_dump -Fc "$DATABASE_URL" > backup-$(date +%F).dump
 | `npm run build` / `npm start` | build e avvio di produzione |
 | `npm run typecheck` | TypeScript in strict mode |
 | `npm run db:migrate` | crea/applica una migrazione |
-| `npm run db:seed` | popola temi, item e utenti demo |
+| `npm run db:seed` | popola temi, tratti, questionari, item e utenti demo |
+| `npm run db:diagnosi` | dice perché un questionario non compare, e quale comando lo sistema |
 | `npm run db:studio` | Prisma Studio |
 | `npx tsx scripts/simulate.ts` | valida l'algoritmo storico su un profilo noto |
 | `npx tsx scripts/mpf/simula.ts` | valida l'algoritmo della Mappa dei Punti di Forza |
