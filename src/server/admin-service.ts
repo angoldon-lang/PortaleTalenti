@@ -12,7 +12,6 @@ export type AdminMetrics = {
   completionRate: number;
   avgDurationSeconds: number | null;
   avgTimeoutRatio: number;
-  activeQuestions: number;
   perAssessment: {
     slug: string;
     name: string;
@@ -20,6 +19,11 @@ export type AdminMetrics = {
     inProgress: number;
     avgDurationSeconds: number | null;
   }[];
+  /**
+   * Medie delle quattro macro-aree del modello storico. Riguardano solo i
+   * report prodotti da quel modello: i risultati della Mappa dei Punti di Forza
+   * non valorizzano quelle colonne e restano fuori dalla media.
+   */
   domainAverages: Record<Domain, number>;
   themeLeaderboard: {
     slug: string;
@@ -28,6 +32,15 @@ export type AdminMetrics = {
     /** Quante volte il tema è entrato nella Top 5 di un utente. */
     topFiveCount: number;
     /** Punteggio normalizzato medio sulla popolazione. */
+    avgScore: number;
+  }[];
+  /** L'equivalente per i tratti della Mappa dei Punti di Forza. */
+  traitLeaderboard: {
+    slug: string;
+    name: string;
+    areaName: string;
+    areaColor: string;
+    topFiveCount: number;
     avgScore: number;
   }[];
   recentResults: {
@@ -49,10 +62,10 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
     newUsers30d,
     testsCompleted,
     testsInProgress,
-    activeQuestions,
     aggregates,
     themes,
-    themeScoreGroups,
+    traits,
+    traitScoreGroups,
     results,
     recent,
   ] = await Promise.all([
@@ -61,7 +74,6 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
     prisma.user.count({ where: { createdAt: { gte: since30d } } }),
     prisma.testSession.count({ where: { status: 'COMPLETED' } }),
     prisma.testSession.count({ where: { status: 'IN_PROGRESS' } }),
-    prisma.question.count({ where: { isActive: true } }),
     prisma.testResult.aggregate({
       _avg: {
         durationSeconds: true,
@@ -73,8 +85,16 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
       },
     }),
     prisma.talentTheme.findMany({ select: { id: true, slug: true, name: true, domain: true } }),
-    prisma.themeScore.groupBy({
-      by: ['themeId'],
+    prisma.strengthTrait.findMany({
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        area: { select: { name: true, color: true, sortOrder: true } },
+      },
+    }),
+    prisma.traitScore.groupBy({
+      by: ['traitId'],
       _avg: { normalizedScore: true },
       _count: { _all: true },
     }),
@@ -99,8 +119,16 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
     }
   }
 
-  const nameBySlug = new Map(themes.map((t) => [t.slug, t.name]));
+  // I due modelli hanno slug disgiunti: un'unica mappa nome-per-slug serve a
+  // entrambi, e ciò che arriva da un modello non trova corrispondenza
+  // nell'altro.
+  const nameBySlug = new Map([...themes, ...traits].map((t) => [t.slug, t.name]));
 
+  const themeScoreGroups = await prisma.themeScore.groupBy({
+    by: ['themeId'],
+    _avg: { normalizedScore: true },
+    _count: { _all: true },
+  });
   const avgByThemeId = new Map(
     themeScoreGroups.map((g) => [g.themeId, g._avg.normalizedScore ?? 50]),
   );
@@ -112,6 +140,21 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
       domain: t.domain,
       topFiveCount: topFiveCounts.get(t.slug) ?? 0,
       avgScore: Math.round((avgByThemeId.get(t.id) ?? 50) * 10) / 10,
+    }))
+    .sort((a, b) => b.topFiveCount - a.topFiveCount || b.avgScore - a.avgScore);
+
+  const avgByTraitId = new Map(
+    traitScoreGroups.map((g) => [g.traitId, g._avg.normalizedScore ?? 50]),
+  );
+
+  const traitLeaderboard = traits
+    .map((t) => ({
+      slug: t.slug,
+      name: t.name,
+      areaName: t.area.name,
+      areaColor: t.area.color,
+      topFiveCount: topFiveCounts.get(t.slug) ?? 0,
+      avgScore: Math.round((avgByTraitId.get(t.id) ?? 50) * 10) / 10,
     }))
     .sort((a, b) => b.topFiveCount - a.topFiveCount || b.avgScore - a.avgScore);
 
@@ -156,7 +199,6 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
       ? Math.round(aggregates._avg.durationSeconds)
       : null,
     avgTimeoutRatio: Math.round((aggregates._avg.timeoutRatio ?? 0) * 1000) / 10,
-    activeQuestions,
     perAssessment,
     domainAverages: {
       EXECUTING: Math.round((aggregates._avg.executingScore ?? 25) * 10) / 10,
@@ -165,6 +207,7 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
       STRATEGIC: Math.round((aggregates._avg.strategicScore ?? 25) * 10) / 10,
     },
     themeLeaderboard,
+    traitLeaderboard,
     recentResults: recent.map((r) => ({
       id: r.id,
       userName: r.user.name,
@@ -218,6 +261,32 @@ export async function listQuestionsForAdmin(assessmentSlug?: string) {
   });
 }
 
+/**
+ * I blocchi dei questionari a scelta forzata. Sono l'equivalente delle domande
+ * per l'altra metodologia, e la pagina di amministrazione li mostra accanto ad
+ * esse invece che in una sezione separata: per chi amministra sono la stessa
+ * cosa — gli item che le persone si vedono somministrare.
+ */
+export async function listBlocksForAdmin(assessmentSlug?: string) {
+  return prisma.choiceBlock.findMany({
+    where: assessmentSlug ? { assessment: { slug: assessmentSlug } } : undefined,
+    orderBy: [{ assessment: { sortOrder: 'asc' } }, { position: 'asc' }],
+    include: {
+      assessment: { select: { slug: true, name: true } },
+      options: {
+        orderBy: { position: 'asc' },
+        select: {
+          id: true,
+          position: true,
+          statement: true,
+          trait: { select: { name: true, slug: true, area: { select: { name: true, color: true } } } },
+        },
+      },
+      _count: { select: { responses: true } },
+    },
+  });
+}
+
 // ===========================================================================
 // Report: consultazione, download e tracciabilità
 // ===========================================================================
@@ -257,7 +326,14 @@ export async function listAuditLog(limit = 50) {
   });
 }
 
-/** Righe dell'export CSV: un profilo per riga, con i temi dominanti. */
+/**
+ * Righe dell'export CSV: un profilo per riga, con gli elementi dominanti.
+ *
+ * Il bilanciamento fra le macro-aree sta in una sola colonna, come elenco
+ * "Area: percentuale", invece che in una colonna per area. Le due metodologie
+ * del portale hanno un numero diverso di aree, e riservare una colonna a
+ * ciascuna significherebbe un foglio metà vuoto qualunque riga si guardi.
+ */
 export async function buildResultsCsv(): Promise<string> {
   const results = await prisma.testResult.findMany({
     orderBy: { computedAt: 'desc' },
@@ -270,14 +346,42 @@ export async function buildResultsCsv(): Promise<string> {
       relationshipScore: true,
       strategicScore: true,
       topThemeSlugs: true,
+      reliabilityIndex: true,
+      reliabilityBand: true,
+      areaScores: { select: { score: true, area: { select: { name: true, sortOrder: true } } } },
       user: { select: { name: true, email: true } },
-      assessment: { select: { name: true } },
+      assessment: { select: { name: true, itemFormat: true } },
     },
   });
 
+  const [themes, traits] = await Promise.all([
+    prisma.talentTheme.findMany({ select: { slug: true, name: true } }),
+    prisma.strengthTrait.findMany({ select: { slug: true, name: true } }),
+  ]);
+  const nameBySlug = new Map([...themes, ...traits].map((t) => [t.slug, t.name]));
+
+  const LEGACY_AREAS = ['Esecuzione', 'Influenza', 'Relazioni', 'Pensiero Strategico'];
+
+  /** Bilanciamento fra le aree, nella forma in cui il risultato lo conserva. */
+  const areaBreakdown = (r: (typeof results)[number]): string => {
+    if (r.assessment.itemFormat === 'FORCED_CHOICE_QUARTET') {
+      return r.areaScores
+        .slice()
+        .sort((a, b) => a.area.sortOrder - b.area.sortOrder)
+        .map((a) => `${a.area.name}: ${a.score.toFixed(1)}%`)
+        .join(' | ');
+    }
+    const values = [r.executingScore, r.influencingScore, r.relationshipScore, r.strategicScore];
+    return LEGACY_AREAS.map((name, i) =>
+      values[i] === null ? null : `${name}: ${values[i]!.toFixed(1)}%`,
+    )
+      .filter(Boolean)
+      .join(' | ');
+  };
+
   const header = [
     'data', 'utente', 'email', 'questionario', 'durata_secondi', 'quota_timeout',
-    'esecuzione_pct', 'influenza_pct', 'relazioni_pct', 'strategico_pct', 'temi_dominanti',
+    'aree_pct', 'dominanti', 'affidabilita', 'coerenza',
   ];
 
   const escape = (value: unknown) => {
@@ -296,11 +400,10 @@ export async function buildResultsCsv(): Promise<string> {
       r.assessment.name,
       r.durationSeconds ?? '',
       r.timeoutRatio,
-      r.executingScore,
-      r.influencingScore,
-      r.relationshipScore,
-      r.strategicScore,
-      r.topThemeSlugs.join(' | '),
+      areaBreakdown(r),
+      r.topThemeSlugs.map((slug) => nameBySlug.get(slug) ?? slug).join(' | '),
+      r.reliabilityIndex ?? '',
+      r.reliabilityBand ?? '',
     ].map(escape).join(','),
   );
 

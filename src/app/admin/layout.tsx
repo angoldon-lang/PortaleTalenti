@@ -12,7 +12,7 @@ const adminNav = [
   { href: '/admin/utenti', label: 'Utenti' },
   { href: '/admin/nuovo-utente', label: 'Nuovo utente' },
   { href: '/admin/ruoli', label: 'Ruoli' },
-  { href: '/admin/domande', label: 'Domande' },
+  { href: '/admin/domande', label: 'Item' },
   { href: '/admin/personalizzazione', label: 'Personalizzazione' },
   { href: '/dashboard', label: 'Il mio profilo' },
 ];

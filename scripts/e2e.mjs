@@ -53,23 +53,48 @@ await shot('01-questionari');
 const slug = process.env.ASSESSMENT ?? 'core12';
 console.log(`\n2. Compilazione "${slug}"`);
 await page.goto(`${BASE}/questionario/${slug}?start=1`, { waitUntil: 'networkidle' });
-await page.waitForSelector('fieldset', { timeout: 30000 });
+// Il portale somministra due formati: coppie di affermazioni su scala, e blocchi
+// quartetto con scelta "di più"/"di meno". L'intestazione dice quale dei due.
+await page.waitForSelector('main', { timeout: 30000 });
+const isQuartet = (await page.getByText(/Blocco \d+ di \d+/).count()) > 0;
+if (!isQuartet) await page.waitForSelector('fieldset', { timeout: 30000 });
+console.log(`  formato: ${isQuartet ? 'blocchi quartetto' : 'coppie su scala'}`);
 await shot('02-item');
 
 let total = 0;
 for (let i = 0; i < 400; i++) {
-  const text = await page.getByText(/Domanda \d+ di \d+/).first().textContent();
-  const m = text.match(/Domanda (\d+) di (\d+)/);
+  const label = isQuartet ? 'Blocco' : 'Domanda';
+  const pattern = new RegExp(`${label} \\d+ di \\d+`);
+  const found = await page.getByText(pattern).first().textContent().catch(() => null);
+  const m = found?.match(new RegExp(`${label} (\\d+) di (\\d+)`));
   if (!m) break;
   total = Number(m[2]);
   const last = Number(m[1]) === total;
-  await page.keyboard.press(last ? '4' : String(1 + Math.floor(Math.random() * 7)));
+
+  if (isQuartet) {
+    // Due tasti distinti: il primo assegna "di più", il secondo "di meno".
+    // Lo stesso tasto due volte annullerebbe la prima scelta invece di
+    // completare il blocco.
+    const first = 1 + Math.floor(Math.random() * 4);
+    const second = 1 + ((first + Math.floor(Math.random() * 3)) % 4);
+    await page.keyboard.press(String(first));
+    await page.waitForTimeout(30);
+    await page.keyboard.press(String(second));
+  } else {
+    await page.keyboard.press(last ? '4' : String(1 + Math.floor(Math.random() * 7)));
+  }
+
   await page.waitForTimeout(last ? 150 : 30);
   if (last && i > 0) break;
 }
 console.log(`  ${total} item`);
 await page.waitForTimeout(2500);
-await page.locator('button', { hasText: /Calcola i miei talenti|Vedi il mio profilo/ }).first().click();
+await page
+  .locator('button', {
+    hasText: /Calcola i miei talenti|Calcola i miei punti di forza|Vedi il mio profilo/,
+  })
+  .first()
+  .click();
 await page.waitForURL('**/dashboard**', { timeout: 120000 });
 await shot('03-dashboard');
 
@@ -119,6 +144,34 @@ await fp.locator('main button[type=submit]').first().click();
 await fp.waitForURL('**/dashboard**', { timeout: 30000 });
 check('accesso del nuovo utente', fp.url().includes('/dashboard'), true);
 await fresh.close();
+
+// La pagina degli item mostra le due metodologie in due tabelle distinte:
+// va verificato che entrambe compaiano e che il filtro per questionario
+// restringa a una sola.
+await ap.goto(`${BASE}/admin/domande`, { waitUntil: 'networkidle' });
+check(
+  'blocchi a scelta forzata elencati',
+  (await ap.getByRole('heading', { name: /Blocchi a scelta forzata/ }).count()) > 0,
+  true,
+);
+check(
+  'coppie di affermazioni elencate',
+  (await ap.getByRole('heading', { name: /Coppie di affermazioni/ }).count()) > 0,
+  true,
+);
+await ap.screenshot({ path: `${OUT}/07-admin-item.png`, fullPage: true });
+
+await ap.goto(`${BASE}/admin/domande?assessment=mpf_essenziale`, { waitUntil: 'networkidle' });
+check(
+  'il filtro su un questionario a blocchi nasconde le coppie',
+  (await ap.getByRole('heading', { name: /Coppie di affermazioni/ }).count()) === 0,
+  true,
+);
+check(
+  'il filtro segnala i blocchi di controllo',
+  (await ap.locator('text=controllo').count()) > 0,
+  true,
+);
 
 await ap.goto(`${BASE}/admin/report`, { waitUntil: 'networkidle' });
 await ap.screenshot({ path: `${OUT}/06-admin-report.png`, fullPage: true });

@@ -141,6 +141,17 @@ model TalentTheme {
 // MODULO 2 — Assessment e questionari
 // ===========================================================================
 
+/// Come sono fatti gli item di un assessment. I due formati convivono: i
+/// questionari storici restano a coppie di affermazioni su scala, quelli della
+/// Mappa dei Punti di Forza usano blocchi a scelta forzata.
+enum ItemFormat {
+  /// Due affermazioni contrapposte e una scala a 7 punti.
+  PAIRED_LIKERT
+  /// Quattro affermazioni fra cui indicare quella che descrive di più e quella
+  /// che descrive di meno.
+  FORCED_CHOICE_QUARTET
+}
+
 /// Lente di lettura del report prodotto da un assessment.
 enum ReportLens {
   /// Top 5 e classifica completa dei temi somministrati.
@@ -151,6 +162,10 @@ enum ReportLens {
   LEADERS
   /// Come i talenti si esprimono nella gestione quotidiana di un team.
   MANAGERS
+  /// Classifica completa dei tratti, con una fascia dominante più ampia.
+  /// Equivalente di FULL_34 per la tassonomia della Mappa dei Punti di Forza,
+  /// che non ha 34 elementi.
+  FULL_RANKING
 }
 
 /// Un questionario somministrabile. Ogni assessment ha la propria banca di
@@ -162,7 +177,8 @@ model Assessment {
   subtitle    String
   description String @db.Text
 
-  lens ReportLens @default(STANDARD)
+  lens       ReportLens @default(STANDARD)
+  itemFormat ItemFormat @default(PAIRED_LIKERT)
 
   /// Quanti temi dominanti evidenziare nel report.
   topCount         Int @default(5)
@@ -175,6 +191,7 @@ model Assessment {
   isActive  Boolean @default(true)
 
   questions    Question[]
+  blocks       ChoiceBlock[]
   testSessions TestSession[]
   results      TestResult[]
   orgRoles     OrgRoleAssessment[]
@@ -220,6 +237,154 @@ model Question {
   @@map("questions")
 }
 
+// ===========================================================================
+// MAPPA DEI PUNTI DI FORZA — tassonomia proprietaria e item a scelta forzata
+// ===========================================================================
+//
+// Modelli separati da TalentTheme, non un suo ampliamento: le due tassonomie
+// hanno architetture diverse (5 aree per 30 tratti contro 4 domini per 34 temi)
+// e ciclo di vita indipendente. Tenerle distinte evita che una modifica al
+// nuovo modello tocchi i questionari già somministrati e i loro report.
+
+/// Una delle macro-aree del modello (Direzione, Energia, Regolazione,
+/// Relazione, Apertura). A differenza dei domini legacy non è un enum: le aree
+/// sono dati, e possono essere riviste senza migrare lo schema.
+model StrengthArea {
+  id    String @id @default(cuid())
+  slug  String @unique
+  name  String
+  /// Sigla di tre lettere usata dove lo spazio è poco (grafici, PDF).
+  short String
+
+  /// Colore in esadecimale che identifica l'area nei grafici.
+  color     String
+  sortOrder Int    @default(0)
+
+  /// Frase che riassume l'area in una riga.
+  claim       String
+  description String @db.Text
+  /// Costrutti pubblici della letteratura a cui l'area si àncora.
+  grounding   String @db.Text
+
+  traits StrengthTrait[]
+  scores AreaScore[]
+
+  @@index([sortOrder])
+  @@map("strength_areas")
+}
+
+/// Uno dei tratti misurati dalla Mappa dei Punti di Forza.
+model StrengthTrait {
+  id     String       @id @default(cuid())
+  slug   String       @unique
+  name   String
+  areaId String
+  area   StrengthArea @relation(fields: [areaId], references: [id], onDelete: Cascade)
+
+  tagline    String
+  definition String @db.Text
+
+  /// Come si manifesta il tratto quando è al lavoro.
+  strengths  String[]
+  /// Il rovescio: che cosa succede quando è usato oltre misura.
+  blindSpots String[]
+  /// Indicazioni concrete per allenarlo.
+  actionTips String[]
+  /// Contesti in cui rende di più.
+  thrivesIn  String[]
+
+  /// Come il tratto si esprime in chi guida (lente LEADERS).
+  leaderApplication  String @db.Text
+  /// Come far rendere chi lo possiede (lente MANAGERS).
+  managerApplication String @db.Text
+
+  options ChoiceOption[]
+  scores  TraitScore[]
+
+  @@index([areaId])
+  @@map("strength_traits")
+}
+
+/// Un blocco quartetto: quattro affermazioni fra cui scegliere.
+model ChoiceBlock {
+  id           String     @id @default(cuid())
+  assessmentId String
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  /// Ordine di somministrazione dentro il proprio assessment (1..N).
+  position Int
+
+  /// Se valorizzato, il blocco ripropone i tratti del blocco indicato con altre
+  /// parole: serve solo a misurare la coerenza ed è escluso dai punteggi.
+  controlForPosition Int?
+
+  /// Permette di ritirare un blocco senza perdere lo storico delle risposte.
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  options   ChoiceOption[]
+  responses BlockResponse[]
+
+  @@unique([assessmentId, position])
+  @@index([assessmentId, isActive, position])
+  @@map("choice_blocks")
+}
+
+/// Una delle quattro affermazioni di un blocco.
+model ChoiceOption {
+  id      String      @id @default(cuid())
+  blockId String
+  block   ChoiceBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
+
+  /// Posizione dell'affermazione dentro il blocco (1..4).
+  position Int
+
+  traitId String
+  trait   StrengthTrait @relation(fields: [traitId], references: [id])
+
+  statement String @db.Text
+
+  chosenAsMost  BlockResponse[] @relation("MostChoice")
+  chosenAsLeast BlockResponse[] @relation("LeastChoice")
+
+  @@unique([blockId, position])
+  @@index([traitId])
+  @@map("choice_options")
+}
+
+/// Risposta a un blocco quartetto.
+model BlockResponse {
+  id            String @id @default(cuid())
+  testSessionId String
+  blockId       String
+
+  /// Affermazione indicata come "mi descrive di più" / "di meno". Null quando
+  /// il blocco è stato saltato allo scadere del tempo: la scelta forzata non
+  /// ammette una via di mezzo, quindi un blocco senza risposta resta vuoto
+  /// invece di essere riempito con un valore neutro inesistente.
+  mostOptionId  String?
+  leastOptionId String?
+
+  /// true se il blocco è stato chiuso dallo scadere del timer.
+  timedOut  Boolean @default(false)
+  /// Tempo di reazione in millisecondi.
+  latencyMs Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  testSession TestSession   @relation(fields: [testSessionId], references: [id], onDelete: Cascade)
+  block       ChoiceBlock   @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  mostOption  ChoiceOption? @relation("MostChoice", fields: [mostOptionId], references: [id], onDelete: SetNull)
+  leastOption ChoiceOption? @relation("LeastChoice", fields: [leastOptionId], references: [id], onDelete: SetNull)
+
+  @@unique([testSessionId, blockId])
+  @@index([blockId])
+  @@map("block_responses")
+}
+
 enum TestStatus {
   IN_PROGRESS
   COMPLETED
@@ -244,10 +409,11 @@ model TestSession {
   lastActivityAt DateTime  @updatedAt
   completedAt    DateTime?
 
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  assessment Assessment  @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
-  responses  Response[]
-  result     TestResult?
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assessment     Assessment      @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  responses      Response[]
+  blockResponses BlockResponse[]
+  result         TestResult?
 
   @@index([userId, assessmentId, status])
   @@map("test_sessions")
@@ -288,13 +454,17 @@ model TestResult {
   userId        String
   assessmentId  String
 
-  /// Punteggi 0-100 per ciascuna delle 4 macro-aree (normalizzati a somma 100).
-  executingScore    Float
-  influencingScore  Float
-  relationshipScore Float
-  strategicScore    Float
+  /// Punteggi 0-100 delle 4 macro-aree del modello legacy (somma 100).
+  /// Nulli per i risultati della Mappa dei Punti di Forza, che ha cinque aree
+  /// e le conserva in `areaScores`.
+  executingScore    Float?
+  influencingScore  Float?
+  relationshipScore Float?
+  strategicScore    Float?
 
-  /// Slug dei 5 temi dominanti, in ordine di punteggio decrescente.
+  /// Slug degli elementi dominanti in ordine di punteggio decrescente: temi per
+  /// i questionari legacy, tratti per quelli della Mappa dei Punti di Forza.
+  /// Quale delle due tassonomie leggere lo dice `assessment.itemFormat`.
   topThemeSlugs String[]
 
   /// Quota di risposte scadute per timeout: indicatore di affidabilità.
@@ -302,12 +472,25 @@ model TestResult {
   /// Durata complessiva della compilazione, in secondi.
   durationSeconds Int?
 
+  /// Quota di scelte non confermate nei blocchi di controllo (solo scelta
+  /// forzata). Si legge fra 0,5 — chi risponde con attenzione — e 0,75, che è
+  /// il livello di chi risponde a caso.
+  inconsistencyRate Float?
+  /// Indice di attendibilità 0-100 che tiene insieme coerenza e completezza.
+  reliabilityIndex  Int?
+  /// Lettura sintetica della coerenza: buona / da_verificare / bassa.
+  /// I sedici confronti di controllo bastano a collocare una compilazione in
+  /// una fascia, non a rendere preciso il numero puntuale.
+  reliabilityBand   String?
+
   computedAt DateTime @default(now())
 
   testSession TestSession     @relation(fields: [testSessionId], references: [id], onDelete: Cascade)
   user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   assessment  Assessment      @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
   themeScores ThemeScore[]
+  areaScores  AreaScore[]
+  traitScores TraitScore[]
   downloads   AdminAuditLog[]
 
   @@index([userId, computedAt])
@@ -334,6 +517,50 @@ model ThemeScore {
   @@unique([testResultId, themeId])
   @@index([themeId, normalizedScore])
   @@map("theme_scores")
+}
+
+/// Punteggio per macro-area della Mappa dei Punti di Forza. È una tabella e non
+/// quattro colonne come nel modello legacy: il numero di aree è un dato del
+/// modello, e cambiarlo non deve richiedere una migrazione dello schema.
+model AreaScore {
+  id           String @id @default(cuid())
+  testResultId String
+  areaId       String
+
+  /// Quota dell'area sul totale, in percentuale (le aree sommano a 100).
+  score Float
+
+  testResult TestResult   @relation(fields: [testResultId], references: [id], onDelete: Cascade)
+  area       StrengthArea @relation(fields: [areaId], references: [id], onDelete: Cascade)
+
+  @@unique([testResultId, areaId])
+  @@map("area_scores")
+}
+
+/// Punteggio per singolo tratto, denormalizzato per query analitiche veloci.
+model TraitScore {
+  id           String @id @default(cuid())
+  testResultId String
+  traitId      String
+
+  /// Media delle quote di preferenza ricevute nei blocchi, 0-100.
+  rawScore        Float
+  /// Punteggio normalizzato entro persona (z-score ipsativo riscalato 0-100).
+  normalizedScore Float
+  /// Posizione in classifica: 1 = tratto dominante.
+  rank            Int
+
+  /// Quante volte il tratto è stato indicato come "mi descrive di più" e come
+  /// "di meno": due numeri concreti che rendono leggibile il punteggio.
+  timesMost  Int @default(0)
+  timesLeast Int @default(0)
+
+  testResult TestResult    @relation(fields: [testResultId], references: [id], onDelete: Cascade)
+  trait      StrengthTrait @relation(fields: [traitId], references: [id], onDelete: Cascade)
+
+  @@unique([testResultId, traitId])
+  @@index([traitId, normalizedScore])
+  @@map("trait_scores")
 }
 
 // ===========================================================================

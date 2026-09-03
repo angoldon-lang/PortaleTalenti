@@ -200,12 +200,22 @@ async function simulate(slug: string, scenario: Scenario): Promise<boolean> {
 
 async function main() {
   const only = process.argv[2];
+  // Solo i questionari a coppie di affermazioni: questo motore è il loro.
+  // Quelli a scelta forzata hanno item e algoritmo diversi, e la loro verifica
+  // sta in `scripts/mpf/simula.ts`.
   const slugs = only
     ? [only]
-    : (await prisma.assessment.findMany({ orderBy: { sortOrder: 'asc' }, select: { slug: true } }))
-        .map((a) => a.slug);
+    : (
+        await prisma.assessment.findMany({
+          where: { itemFormat: 'PAIRED_LIKERT' },
+          orderBy: { sortOrder: 'asc' },
+          select: { slug: true },
+        })
+      ).map((a) => a.slug);
 
-  console.log(`Verifica del motore di calcolo · ${REPLICATIONS} repliche per combinazione`);
+  console.log(
+    `Verifica del motore a coppie di affermazioni · ${REPLICATIONS} repliche per combinazione`,
+  );
   const outcomes: boolean[] = [];
   for (const scenario of SCENARIOS) {
     console.log(`\n${scenario.label}`);

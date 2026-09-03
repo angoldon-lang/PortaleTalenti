@@ -1,6 +1,5 @@
 'use client';
 
-import type { Domain } from '@prisma/client';
 import {
   Cell,
   Legend,
@@ -15,18 +14,15 @@ import {
   Tooltip,
 } from 'recharts';
 
-import { DOMAIN_META, DOMAIN_ORDER } from '@/content/themes';
+import type { ReportGroup } from '@/components/report/report-model';
 
-export type DomainDatum = {
-  key: string;
-  label: string;
-  short: string;
-  value: number;
-  color: string;
-};
+export type DomainDatum = ReportGroup;
 
 /**
- * Grafico a ciambella del bilanciamento fra le 4 macro-aree.
+ * Grafico a ciambella del bilanciamento fra le macro-aree. Quante siano lo
+ * dicono i dati — quattro nel modello storico, cinque nella Mappa dei Punti di
+ * Forza — e i colori arrivano con loro.
+ *
  * I dati sono esposti anche in una tabella nascosta agli occhi ma leggibile
  * dagli screen reader: il grafico non è l'unico modo di accedere al dato.
  */
@@ -63,7 +59,10 @@ export function DomainDonut({ data }: { data: DomainDatum[] }) {
           </PieChart>
         </ResponsiveContainer>
       </div>
-      <ChartTable data={data} caption="Distribuzione percentuale fra le quattro macro-aree" />
+      <ChartTable
+        data={data}
+        caption={`Distribuzione percentuale fra le ${data.length} macro-aree`}
+      />
     </div>
   );
 }
@@ -73,12 +72,13 @@ export type ThemeDatum = {
   name: string;
   score: number;
   rank: number;
-  domain: Domain;
+  groupKey: string;
+  groupColor: string;
 };
 
 /**
- * Etichetta dell'asse colorata secondo la macro-area del tema: rende leggibili
- * i quattro settori del radar senza aggiungere una legenda.
+ * Etichetta dell'asse colorata secondo la macro-area della voce: rende
+ * leggibili i settori del radar senza aggiungere una legenda.
  */
 function ThemeTick({
   payload,
@@ -102,7 +102,7 @@ function ThemeTick({
       textAnchor={textAnchor}
       dominantBaseline="central"
       fontSize={11}
-      fill={datum ? DOMAIN_META[datum.domain].color : '#4f5f78'}
+      fill={datum ? datum.groupColor : '#4f5f78'}
     >
       {label.length > 13 ? `${label.slice(0, 12)}…` : label}
     </text>
@@ -110,16 +110,23 @@ function ThemeTick({
 }
 
 /**
- * Radar sui 12 temi: mostra la "forma" del profilo, cioè dove si concentra
- * l'intensità. Il radar sulle sole 4 macro-aree sarebbe poco leggibile, perché
- * quelle quote sommano a 100 e restano sempre vicine al 25%.
+ * Radar sulle singole voci: mostra la "forma" del profilo, cioè dove si
+ * concentra l'intensità. Il radar sulle sole macro-aree sarebbe poco leggibile,
+ * perché quelle quote sommano a 100 e restano vicine alla media.
  */
-export function ThemeRadar({ data }: { data: ThemeDatum[] }) {
-  // Ordinati per macro-area: i quattro settori del radar diventano leggibili
-  // a colpo d'occhio (tre assi contigui per ciascuna area).
+export function ThemeRadar({
+  data,
+  /** Ordine delle macro-aree, per rendere contigui gli assi di ciascuna. */
+  groupOrder,
+}: {
+  data: ThemeDatum[];
+  groupOrder: string[];
+}) {
+  // Ordinati per macro-area: i settori del radar diventano leggibili a colpo
+  // d'occhio, con gli assi di una stessa area uno accanto all'altro.
   const ordered = [...data].sort(
     (a, b) =>
-      DOMAIN_ORDER.indexOf(a.domain) - DOMAIN_ORDER.indexOf(b.domain) ||
+      groupOrder.indexOf(a.groupKey) - groupOrder.indexOf(b.groupKey) ||
       a.name.localeCompare(b.name, 'it'),
   );
 

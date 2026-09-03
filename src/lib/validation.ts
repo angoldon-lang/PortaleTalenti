@@ -57,6 +57,25 @@ export const answerSchema = z.object({
   latencyMs: z.number().int().min(0).max(1000 * 60 * 30).optional(),
 });
 
+/**
+ * Risposta a un blocco quartetto. Le due scelte possono essere nulle — è il
+ * caso del blocco scaduto — ma quando ci sono devono essere distinte: indicare
+ * la stessa affermazione come quella che descrive di più e di meno non è un
+ * ordinamento.
+ */
+export const blockAnswerSchema = z
+  .object({
+    blockId: z.string().min(1),
+    mostOptionId: z.string().min(1).nullable(),
+    leastOptionId: z.string().min(1).nullable(),
+    timedOut: z.boolean().default(false),
+    latencyMs: z.number().int().min(0).max(1000 * 60 * 30).optional(),
+  })
+  .refine((d) => d.mostOptionId === null || d.mostOptionId !== d.leastOptionId, {
+    message: 'Le due scelte devono ricadere su affermazioni diverse',
+    path: ['leastOptionId'],
+  });
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type AnswerInput = z.infer<typeof answerSchema>;

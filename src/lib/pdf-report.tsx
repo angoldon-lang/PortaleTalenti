@@ -9,8 +9,8 @@ import {
   View,
 } from '@react-pdf/renderer';
 
-import { DOMAIN_META, DOMAIN_ORDER } from '@/content/themes';
 import { LENS_META } from '@/content/assessments';
+import { buildReportModel } from '@/components/report/report-model';
 import type { FullReport } from '@/server/test-service';
 
 const COLORS = {
@@ -214,23 +214,13 @@ export function ReportDocument({
   branding: ReportBranding;
 }) {
   const brand = branding.primaryColor;
-  const domainValues: Record<string, number> = {
-    EXECUTING: report.executingScore,
-    INFLUENCING: report.influencingScore,
-    RELATIONSHIP: report.relationshipScore,
-    STRATEGIC: report.strategicScore,
-  };
+  // Le due metodologie del portale passano per lo stesso modello di vista del
+  // report a schermo: il PDF non deve sapere quale delle due ha prodotto i dati.
+  const model = buildReportModel(report);
+  const { groups, items, itemNoun, unitNoun, quality } = model;
 
-  const domains = DOMAIN_ORDER.map((d) => ({
-    key: d,
-    label: DOMAIN_META[d].label,
-    color: DOMAIN_META[d].color,
-    description: DOMAIN_META[d].description,
-    value: domainValues[d]!,
-  }));
-
-  const topCount = report.assessment.topCount;
-  const topThemes = report.themeScores.slice(0, topCount);
+  const topCount = model.topCount;
+  const topItems = items.slice(0, topCount);
   const lens = report.assessment.lens;
   const generatedOn = new Intl.DateTimeFormat('it-IT', {
     day: '2-digit',
@@ -265,16 +255,16 @@ export function ReportDocument({
         <Text style={[styles.eyebrow, { color: brand }]}>{report.assessment.name}</Text>
         <Text style={styles.h1}>{owner}</Text>
         <Text style={styles.meta}>
-          Compilato il {generatedOn} · {report.testSession.totalQuestions} item ·{' '}
-          {report.themeScores.length} temi · risposte entro il tempo:{' '}
-          {Math.round((1 - report.timeoutRatio) * 100)}% · {LENS_META[lens].label}
+          Compilato il {generatedOn} · {report.testSession.totalQuestions} {unitNoun.plural} ·{' '}
+          {items.length} {itemNoun.plural} · entro il tempo:{' '}
+          {Math.round(quality.inTimeRatio * 100)}% · {LENS_META[lens].label}
         </Text>
 
         <Text style={styles.h2}>Il tuo bilanciamento</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 24 }}>
-          <DonutChart data={domains.map((d) => ({ value: d.value, color: d.color }))} />
+          <DonutChart data={groups.map((d) => ({ value: d.value, color: d.color }))} />
           <View style={{ flex: 1 }}>
-            {domains.map((d) => (
+            {groups.map((d) => (
               <View key={d.key} style={styles.domainRow}>
                 <Text style={styles.domainLabel}>{d.label}</Text>
                 <View style={styles.barTrack}>
@@ -291,40 +281,46 @@ export function ReportDocument({
           </View>
         </View>
 
-        <Text style={styles.h2}>I tuoi {topCount} talenti dominanti</Text>
-        {topThemes.map((s) => (
-          <View key={s.id} style={styles.rankRow}>
-            <Text style={styles.rankIndex}>{s.rank}.</Text>
-            <Text style={styles.rankName}>{s.theme.name}</Text>
-            <Text style={{ flex: 1, fontSize: 9, color: COLORS.ink500 }}>
-              {DOMAIN_META[s.theme.domain].label}
-            </Text>
+        <Text style={styles.h2}>
+          I tuoi {topCount} {itemNoun.plural} dominanti
+        </Text>
+        {topItems.map((item) => (
+          <View key={item.id} style={styles.rankRow}>
+            <Text style={styles.rankIndex}>{item.rank}.</Text>
+            <Text style={styles.rankName}>{item.name}</Text>
+            <Text style={{ flex: 1, fontSize: 9, color: COLORS.ink500 }}>{item.groupLabel}</Text>
             <Text style={{ width: 30, textAlign: 'right', fontSize: 10 }}>
-              {Math.round(s.normalizedScore)}
+              {Math.round(item.score)}
             </Text>
           </View>
         ))}
 
         <Text style={styles.h2}>Classifica completa</Text>
-        {report.themeScores.slice(topCount).map((s) => (
-          <View key={s.id} style={styles.rankRow}>
-            <Text style={styles.rankIndex}>{s.rank}.</Text>
-            <Text style={styles.rankName}>{s.theme.name}</Text>
-            <Text style={{ flex: 1, fontSize: 9, color: COLORS.ink500 }}>
-              {DOMAIN_META[s.theme.domain].label}
-            </Text>
+        {items.slice(topCount).map((item) => (
+          <View key={item.id} style={styles.rankRow}>
+            <Text style={styles.rankIndex}>{item.rank}.</Text>
+            <Text style={styles.rankName}>{item.name}</Text>
+            <Text style={{ flex: 1, fontSize: 9, color: COLORS.ink500 }}>{item.groupLabel}</Text>
             <Text style={{ width: 30, textAlign: 'right', fontSize: 10, color: COLORS.ink500 }}>
-              {Math.round(s.normalizedScore)}
+              {Math.round(item.score)}
             </Text>
           </View>
         ))}
 
+        {quality.consistency ? (
+          <View style={styles.disclaimer} wrap={false}>
+            <Text>
+              {quality.consistency.label}. {quality.consistency.note}
+            </Text>
+          </View>
+        ) : null}
+
         <View style={styles.disclaimer} wrap={false}>
           <Text>
-            I punteggi sono normalizzati sul tuo profilo (media 50): indicano quanto ciascun tema si
-            stacca dalla tua media personale e non costituiscono un confronto con altre persone. Il
-            questionario è uno strumento di autoconsapevolezza e sviluppo professionale; non è un
-            test clinico né uno strumento di selezione.
+            I punteggi sono normalizzati sul tuo profilo (media 50): indicano quanto ciascun{' '}
+            {itemNoun.singular} si stacca dalla tua media personale e non costituiscono un confronto
+            con altre persone. Il questionario è uno strumento di autoconsapevolezza e sviluppo
+            professionale; non è un test clinico né uno strumento di selezione.
           </Text>
         </View>
 
@@ -342,61 +338,53 @@ export function ReportDocument({
         <Text style={[styles.eyebrow, { color: brand }]}>Schede di dettaglio</Text>
         <Text style={[styles.h1, { fontSize: 20 }]}>{LENS_META[lens].detailHeading}</Text>
 
-        {topThemes.map((s) => (
-          <View key={s.id} style={styles.talent} wrap={false}>
+        {topItems.map((item) => (
+          <View key={item.id} style={styles.talent} wrap={false}>
             <View style={styles.talentHeader}>
-              <View
-                style={[styles.rankBadge, { backgroundColor: DOMAIN_META[s.theme.domain].color }]}
-              >
-                <Text style={styles.rankText}>{s.rank}</Text>
+              <View style={[styles.rankBadge, { backgroundColor: item.groupColor }]}>
+                <Text style={styles.rankText}>{item.rank}</Text>
               </View>
               <View>
-                <Text style={styles.talentName}>{s.theme.name}</Text>
+                <Text style={styles.talentName}>{item.name}</Text>
                 <Text style={styles.talentDomain}>
-                  {DOMAIN_META[s.theme.domain].label} · intensità {Math.round(s.normalizedScore)}
+                  {item.groupLabel} · intensità {Math.round(item.score)}
                 </Text>
               </View>
             </View>
 
-            <Text style={styles.tagline}>{s.theme.tagline}</Text>
+            <Text style={styles.tagline}>{item.tagline}</Text>
 
-            {s.theme.fullDescription.split('\n\n').map((p, i) => (
+            {item.description.split('\n\n').map((p, i) => (
               <Text key={i} style={styles.paragraph}>
                 {p}
               </Text>
             ))}
 
-            {lens === 'LEADERS' && s.theme.leaderApplication ? (
+            {item.lensNote ? (
               <View style={styles.lensBox}>
-                <Text style={styles.h3}>Quando guidi</Text>
-                <Text style={{ fontSize: 9.5 }}>{s.theme.leaderApplication}</Text>
-              </View>
-            ) : null}
-            {lens === 'MANAGERS' && s.theme.managerApplication ? (
-              <View style={styles.lensBox}>
-                <Text style={styles.h3}>Nella gestione del team</Text>
-                <Text style={{ fontSize: 9.5 }}>{s.theme.managerApplication}</Text>
+                <Text style={styles.h3}>{item.lensNote.heading}</Text>
+                <Text style={{ fontSize: 9.5 }}>{item.lensNote.body}</Text>
               </View>
             ) : null}
 
             <View style={styles.columns}>
               <View style={styles.column}>
                 <Text style={styles.h3}>Quando lavora al meglio</Text>
-                <Bullets items={s.theme.strengths} color="#059669" />
+                <Bullets items={item.strengths} color="#059669" />
               </View>
               <View style={styles.column}>
                 <Text style={styles.h3}>Punti ciechi</Text>
-                <Bullets items={s.theme.blindSpots} color="#d97706" />
+                <Bullets items={item.blindSpots} color="#d97706" />
               </View>
             </View>
 
             <View style={{ marginTop: 10 }}>
               <Text style={styles.h3}>Come allenarlo</Text>
-              <Bullets items={s.theme.actionTips} color={brand} />
+              <Bullets items={item.actionTips} color={brand} />
             </View>
 
             <Text style={{ marginTop: 8, fontSize: 9, color: COLORS.ink500 }}>
-              Contesti in cui rende di più: {s.theme.thrivesIn.join(' · ')}
+              Contesti in cui rende di più: {item.thrivesIn.join(' · ')}
             </Text>
           </View>
         ))}

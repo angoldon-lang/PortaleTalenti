@@ -1,18 +1,19 @@
-import type { Domain } from '@prisma/client';
-
 import { ButtonLink } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DomainDonut, ThemeRadar, type DomainDatum } from '@/components/report/domain-charts';
-import { TalentCard, type TalentCardData } from '@/components/report/talent-card';
-import { DomainBadge } from '@/components/ui/domain-badge';
-import { DOMAIN_META, DOMAIN_ORDER } from '@/content/themes';
-import { LENS_META } from '@/content/assessments';
+import { DomainDonut, ThemeRadar } from '@/components/report/domain-charts';
+import { TalentCard } from '@/components/report/talent-card';
+import { GroupBadge } from '@/components/ui/group-badge';
+import { buildReportModel, lensMetaFor } from '@/components/report/report-model';
 import type { FullReport } from '@/server/test-service';
 import { formatDate, formatDuration } from '@/lib/utils';
 
 /**
- * Il report completo. La "lente" dell'assessment decide quanti temi mettere in
- * evidenza e quale sezione aggiuntiva mostrare in ciascuna scheda.
+ * Il report completo. Legge un modello di vista comune alle due metodologie
+ * del portale (vedi `report-model.ts`), così questa pagina non deve sapere se
+ * il questionario compilato fosse a coppie di affermazioni o a blocchi.
+ *
+ * La "lente" dell'assessment decide quante voci mettere in evidenza e quale
+ * sezione aggiuntiva mostrare in ciascuna scheda.
  */
 export function ReportView({
   report,
@@ -24,46 +25,14 @@ export function ReportView({
   title: string;
   adminNotice?: React.ReactNode;
 }) {
-  const lens = report.assessment.lens;
-  const lensMeta = LENS_META[lens];
+  const lensMeta = lensMetaFor(report);
+  const model = buildReportModel(report);
+  const { groups, items, itemNoun, unitNoun, quality } = model;
 
-  const domainData: DomainDatum[] = DOMAIN_ORDER.map((domain) => ({
-    key: domain,
-    label: DOMAIN_META[domain].label,
-    short: DOMAIN_META[domain].short,
-    color: DOMAIN_META[domain].color,
-    value: {
-      EXECUTING: report.executingScore,
-      INFLUENCING: report.influencingScore,
-      RELATIONSHIP: report.relationshipScore,
-      STRATEGIC: report.strategicScore,
-    }[domain],
-  }));
-
-  const topCount = report.assessment.topCount;
-
-  const top: TalentCardData[] = report.themeScores.slice(0, topCount).map((s) => ({
-    rank: s.rank,
-    slug: s.theme.slug,
-    name: s.theme.name,
-    domain: s.theme.domain,
-    tagline: s.theme.tagline,
-    fullDescription: s.theme.fullDescription,
-    strengths: s.theme.strengths,
-    blindSpots: s.theme.blindSpots,
-    actionTips: s.theme.actionTips,
-    thrivesIn: s.theme.thrivesIn,
-    score: s.normalizedScore,
-    lensNote:
-      lens === 'LEADERS' && s.theme.leaderApplication
-        ? { heading: 'Quando guidi', body: s.theme.leaderApplication }
-        : lens === 'MANAGERS' && s.theme.managerApplication
-          ? { heading: 'Nella gestione del team', body: s.theme.managerApplication }
-          : null,
-  }));
-
-  const dominantDomain = domainData.reduce((a, b) => (b.value > a.value ? b : a));
-  const totalThemes = report.themeScores.length;
+  const topCount = model.topCount;
+  const top = items.slice(0, topCount);
+  const dominantGroup = groups.reduce((a, b) => (b.value > a.value ? b : a));
+  const totalItems = items.length;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
@@ -79,7 +48,8 @@ export function ReportView({
           </h1>
           <p className="mt-2 text-ink-600">
             Compilato il {formatDate(report.computedAt)} · {report.testSession.totalQuestions}{' '}
-            domande · {totalThemes} temi · {formatDuration(report.durationSeconds)}
+            {unitNoun.plural} · {totalItems} {itemNoun.plural} ·{' '}
+            {formatDuration(report.durationSeconds)}
           </p>
         </div>
 
@@ -100,35 +70,44 @@ export function ReportView({
       </header>
 
       <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Talento dominante" value={top[0]!.name}>
-          <DomainBadge domain={top[0]!.domain} />
+        <StatCard label={`${capitalize(itemNoun.singular)} dominante`} value={top[0]!.name}>
+          <GroupBadge label={top[0]!.groupLabel} color={top[0]!.groupColor} />
         </StatCard>
-        <StatCard label="Macro-area prevalente" value={dominantDomain.label}>
-          <span className="text-sm text-ink-500">{dominantDomain.value.toFixed(1)}% del profilo</span>
+        <StatCard label="Macro-area prevalente" value={dominantGroup.label}>
+          <span className="text-sm text-ink-500">{dominantGroup.value.toFixed(1)}% del profilo</span>
         </StatCard>
         <StatCard
-          label="Distanza dal 2° talento"
+          label={`Distanza dal 2° ${itemNoun.singular}`}
           value={`${Math.round(top[0]!.score - top[1]!.score)} pt`}
         >
           <span className="text-sm text-ink-500">
             {top[0]!.score - top[1]!.score > 8 ? 'Profilo molto marcato' : 'Profilo equilibrato'}
           </span>
         </StatCard>
-        <StatCard label="Risposte istintive" value={`${Math.round((1 - report.timeoutRatio) * 100)}%`}>
-          <span className="text-sm text-ink-500">date entro il tempo</span>
-        </StatCard>
+        {quality.consistency ? (
+          <StatCard label="Attendibilità" value={quality.consistency.label}>
+            <span className="text-sm text-ink-500">
+              {Math.round(quality.inTimeRatio * 100)}% dei {unitNoun.plural} completati in tempo
+            </span>
+          </StatCard>
+        ) : (
+          <StatCard
+            label="Risposte istintive"
+            value={`${Math.round(quality.inTimeRatio * 100)}%`}
+          >
+            <span className="text-sm text-ink-500">date entro il tempo</span>
+          </StatCard>
+        )}
       </section>
 
       <section className="mt-8 grid gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Bilanciamento fra le macro-aree</CardTitle>
-            <CardDescription>
-              Come si distribuisce la tua energia fra i quattro modi di contribuire a un gruppo.
-            </CardDescription>
+            <CardTitle>{model.groupsHeading}</CardTitle>
+            <CardDescription>{model.groupsDescription}</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
-            <DomainDonut data={domainData} />
+            <DomainDonut data={groups} />
           </CardContent>
         </Card>
 
@@ -136,18 +115,20 @@ export function ReportView({
           <CardHeader>
             <CardTitle>La forma del tuo profilo</CardTitle>
             <CardDescription>
-              Intensità dei {totalThemes} temi. Un profilo appuntito indica una specializzazione
-              netta; uno regolare, versatilità.
+              Intensità dei {totalItems} {itemNoun.plural}. Un profilo appuntito indica una
+              specializzazione netta; uno regolare, versatilità.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <ThemeRadar
-              data={report.themeScores.map((s) => ({
-                slug: s.theme.slug,
-                name: s.theme.name,
-                domain: s.theme.domain,
-                score: s.normalizedScore,
-                rank: s.rank,
+              groupOrder={groups.map((g) => g.key)}
+              data={items.map((item) => ({
+                slug: item.slug,
+                name: item.name,
+                groupKey: item.groupKey,
+                groupColor: item.groupColor,
+                score: item.score,
+                rank: item.rank,
               }))}
             />
           </CardContent>
@@ -160,7 +141,7 @@ export function ReportView({
             <CardTitle>Cosa significa il tuo bilanciamento</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 pt-0 sm:grid-cols-2">
-            {domainData
+            {groups
               .slice()
               .sort((a, b) => b.value - a.value)
               .map((d) => (
@@ -174,9 +155,7 @@ export function ReportView({
                     <p className="font-medium text-ink-900">
                       {d.label} · {d.value.toFixed(1)}%
                     </p>
-                    <p className="mt-0.5 text-sm leading-relaxed text-ink-600">
-                      {DOMAIN_META[d.key as Domain].description}
-                    </p>
+                    <p className="mt-0.5 text-sm leading-relaxed text-ink-600">{d.description}</p>
                   </div>
                 </div>
               ))}
@@ -191,8 +170,8 @@ export function ReportView({
         <p className="mt-2 max-w-2xl text-ink-600">{lensMeta.detailIntro}</p>
 
         <div className="mt-6 space-y-4">
-          {top.map((talent, i) => (
-            <TalentCard key={talent.slug} talent={talent} defaultOpen={i === 0} />
+          {top.map((item, i) => (
+            <TalentCard key={item.slug} talent={item} defaultOpen={i === 0} />
           ))}
         </div>
       </section>
@@ -202,36 +181,36 @@ export function ReportView({
           La classifica completa
         </h2>
         <p className="mt-2 max-w-2xl text-ink-600">
-          I temi in fondo alla lista non sono difetti: sono aree in cui conviene appoggiarsi ad
-          altri invece di investire energie per colmare un divario.
+          I {itemNoun.plural} in fondo alla lista non sono difetti: sono aree in cui conviene
+          appoggiarsi ad altri invece di investire energie per colmare un divario.
         </p>
 
         <Card className="mt-6 overflow-hidden">
           <ul className="divide-y divide-ink-200/70">
-            {report.themeScores.map((s) => (
-              <li key={s.id} className="flex items-center gap-4 px-5 py-3 sm:px-6">
+            {items.map((item) => (
+              <li key={item.id} className="flex items-center gap-4 px-5 py-3 sm:px-6">
                 <span className="w-6 shrink-0 text-sm font-semibold tabular-nums text-ink-400">
-                  {s.rank}
+                  {item.rank}
                 </span>
                 <span className="w-40 shrink-0 truncate font-medium text-ink-900 sm:w-52">
-                  {s.theme.name}
+                  {item.name}
                 </span>
                 <span className="hidden sm:block">
-                  <DomainBadge domain={s.theme.domain} />
+                  <GroupBadge label={item.groupLabel} color={item.groupColor} />
                 </span>
                 <span className="ml-auto flex flex-1 items-center gap-3">
                   <span className="h-2 flex-1 overflow-hidden rounded-full bg-ink-100">
                     <span
                       className="block h-full rounded-full"
                       style={{
-                        width: `${Math.max(2, s.normalizedScore)}%`,
-                        backgroundColor: DOMAIN_META[s.theme.domain].color,
-                        opacity: s.rank <= topCount ? 1 : 0.45,
+                        width: `${Math.max(2, item.score)}%`,
+                        backgroundColor: item.groupColor,
+                        opacity: item.rank <= topCount ? 1 : 0.45,
                       }}
                     />
                   </span>
                   <span className="w-9 shrink-0 text-right text-sm tabular-nums text-ink-600">
-                    {Math.round(s.normalizedScore)}
+                    {Math.round(item.score)}
                   </span>
                 </span>
               </li>
@@ -240,12 +219,30 @@ export function ReportView({
         </Card>
 
         <p className="mt-4 text-sm text-ink-500">
-          Punteggi normalizzati sul tuo profilo (media 50): indicano quanto ciascun tema si stacca
-          dalla tua media personale, non un confronto con altre persone.
+          Punteggi normalizzati sul tuo profilo (media 50): indicano quanto ciascun{' '}
+          {itemNoun.singular} si stacca dalla tua media personale, non un confronto con altre
+          persone.
         </p>
+
+        {quality.consistency && (
+          <Card className="mt-5">
+            <CardHeader>
+              <CardTitle>Come è andata la compilazione</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 text-[15px] leading-relaxed text-ink-700">
+              <p className="font-medium text-ink-900">{quality.consistency.label}</p>
+              <p className="mt-1">{quality.consistency.note}</p>
+            </CardContent>
+          </Card>
+        )}
       </section>
     </div>
   );
+}
+
+/** "tratto" → "Tratto": serve solo per le etichette delle statistiche. */
+function capitalize(word: string): string {
+  return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
 function StatCard({

@@ -7,6 +7,7 @@ import { formatDate, formatDuration } from '@/lib/utils';
 export default async function AdminMetricsPage() {
   const m = await getAdminMetrics();
   const maxTopFive = Math.max(1, ...m.themeLeaderboard.map((t) => t.topFiveCount));
+  const maxTopTraits = Math.max(1, ...m.traitLeaderboard.map((t) => t.topFiveCount));
 
   return (
     <>
@@ -63,23 +64,26 @@ export default async function AdminMetricsPage() {
       <section className="mt-6 grid gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Bilanciamento medio della popolazione</CardTitle>
+            <CardTitle>Tratti più frequenti fra i dominanti</CardTitle>
+            <p className="mt-1 text-sm text-ink-500">Mappa dei Punti di Forza</p>
           </CardHeader>
-          <CardContent className="space-y-3 pt-0">
-            {DOMAIN_ORDER.map((d) => (
-              <div key={d} className="flex items-center gap-3">
-                <span className="w-40 shrink-0 text-sm text-ink-700">{DOMAIN_META[d].label}</span>
+          <CardContent className="space-y-2 pt-0">
+            {m.traitLeaderboard.slice(0, 8).map((t) => (
+              <div key={t.slug} className="flex items-center gap-3">
+                <span className="w-36 shrink-0 truncate text-sm text-ink-800" title={t.areaName}>
+                  {t.name}
+                </span>
                 <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-ink-100">
                   <span
                     className="block h-full rounded-full"
                     style={{
-                      width: `${Math.min(100, m.domainAverages[d] * 2)}%`,
-                      backgroundColor: DOMAIN_META[d].color,
+                      width: `${(t.topFiveCount / maxTopTraits) * 100}%`,
+                      backgroundColor: t.areaColor,
                     }}
                   />
                 </span>
-                <span className="w-12 shrink-0 text-right text-sm tabular-nums text-ink-600">
-                  {m.domainAverages[d]}%
+                <span className="w-8 shrink-0 text-right text-sm tabular-nums text-ink-600">
+                  {t.topFiveCount}
                 </span>
               </div>
             ))}
@@ -89,6 +93,7 @@ export default async function AdminMetricsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Temi più frequenti nelle Top 5</CardTitle>
+            <p className="mt-1 text-sm text-ink-500">Modello precedente</p>
           </CardHeader>
           <CardContent className="space-y-2 pt-0">
             {m.themeLeaderboard.slice(0, 8).map((t) => (
@@ -105,6 +110,35 @@ export default async function AdminMetricsPage() {
                 </span>
                 <span className="w-8 shrink-0 text-right text-sm tabular-nums text-ink-600">
                   {t.topFiveCount}
+                </span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Bilanciamento medio della popolazione</CardTitle>
+            <p className="mt-1 text-sm text-ink-500">
+              Modello precedente: i report della Mappa dei Punti di Forza hanno cinque aree e non
+              rientrano in questa media.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-0">
+            {DOMAIN_ORDER.map((d) => (
+              <div key={d} className="flex items-center gap-3">
+                <span className="w-40 shrink-0 text-sm text-ink-700">{DOMAIN_META[d].label}</span>
+                <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-ink-100">
+                  <span
+                    className="block h-full rounded-full"
+                    style={{
+                      width: `${Math.min(100, m.domainAverages[d] * 2)}%`,
+                      backgroundColor: DOMAIN_META[d].color,
+                    }}
+                  />
+                </span>
+                <span className="w-12 shrink-0 text-right text-sm tabular-nums text-ink-600">
+                  {m.domainAverages[d]}%
                 </span>
               </div>
             ))}

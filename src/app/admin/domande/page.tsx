@@ -1,9 +1,11 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DomainBadge } from '@/components/ui/domain-badge';
-import { listQuestionsForAdmin } from '@/server/admin-service';
-import { toggleQuestionAction } from '@/server/admin-actions';
+import { GroupBadge } from '@/components/ui/group-badge';
+import { listBlocksForAdmin, listQuestionsForAdmin } from '@/server/admin-service';
+import { toggleBlockAction, toggleQuestionAction } from '@/server/admin-actions';
 import { ASSESSMENTS } from '@/content/assessments';
+import { MPF_ASSESSMENTS } from '@/content/mpf/assessments';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -13,22 +15,31 @@ export default async function AdminQuestionsPage({
   searchParams: Promise<{ assessment?: string }>;
 }) {
   const { assessment } = await searchParams;
-  const questions = await listQuestionsForAdmin(assessment);
-  const active = questions.filter((q) => q.isActive).length;
+  // Le due metodologie hanno item di forma diversa — coppie di affermazioni e
+  // blocchi da quattro — e ciascuna ha la sua tabella. Il filtro decide quale
+  // delle due mostrare: sono comunque insiemi disgiunti.
+  const [questions, blocks] = await Promise.all([
+    listQuestionsForAdmin(assessment),
+    listBlocksForAdmin(assessment),
+  ]);
+  const activeQuestions = questions.filter((q) => q.isActive).length;
+  const activeBlocks = blocks.filter((b) => b.isActive).length;
+  const total = questions.length + blocks.length;
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight text-ink-900">Domande</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-ink-900">Item dei questionari</h1>
       <p className="mt-2 max-w-3xl text-ink-600">
-        {active} item attivi su {questions.length}
+        {activeQuestions + activeBlocks} item attivi su {total}
         {assessment ? ' nel questionario selezionato' : ' in tutti i questionari'}. Ogni banca è
-        bilanciata: tutti i temi compaiono lo stesso numero di volte. Disattivare un item riduce la
-        copertura dei due temi coinvolti, quindi conviene intervenire a gruppi omogenei.
+        bilanciata: tutti i temi, o tutti i tratti, compaiono lo stesso numero di volte.
+        Disattivare un item riduce la copertura di quelli coinvolti, quindi conviene intervenire a
+        gruppi omogenei.
       </p>
 
       <nav aria-label="Filtra per questionario" className="mt-5 flex flex-wrap gap-2">
         <FilterLink href="/admin/domande" active={!assessment} label="Tutti" />
-        {ASSESSMENTS.map((a) => (
+        {[...MPF_ASSESSMENTS, ...ASSESSMENTS].map((a) => (
           <FilterLink
             key={a.slug}
             href={`/admin/domande?assessment=${a.slug}`}
@@ -38,7 +49,89 @@ export default async function AdminQuestionsPage({
         ))}
       </nav>
 
-      <Card className="mt-6 overflow-hidden">
+      {blocks.length > 0 && (
+        <>
+          <h2 className="mt-8 text-lg font-semibold text-ink-900">
+            Blocchi a scelta forzata{' '}
+            <span className="font-normal text-ink-500">
+              ({activeBlocks} attivi su {blocks.length})
+            </span>
+          </h2>
+          <Card className="mt-3 overflow-hidden">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[980px] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-ink-200 text-xs uppercase tracking-wide text-ink-500">
+                      <th scope="col" className="px-5 py-3">#</th>
+                      <th scope="col" className="px-3 py-3">Questionario</th>
+                      <th scope="col" className="px-3 py-3">Le quattro affermazioni</th>
+                      <th scope="col" className="px-3 py-3">Risposte</th>
+                      <th scope="col" className="px-3 py-3">Stato</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-ink-100">
+                    {blocks.map((b) => (
+                      <tr key={b.id} className={b.isActive ? undefined : 'bg-ink-50/70'}>
+                        <td className="px-5 py-3 align-top tabular-nums text-ink-500">
+                          {b.position}
+                          {b.controlForPosition !== null && (
+                            <span
+                              className="mt-1 block rounded bg-ink-100 px-1.5 py-0.5 text-[10px] font-medium text-ink-600"
+                              title={`Ripropone i tratti del blocco ${b.controlForPosition}`}
+                            >
+                              controllo
+                            </span>
+                          )}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-3 align-top text-xs text-ink-500">
+                          {b.assessment.name}
+                        </td>
+                        <td className="px-3 py-3">
+                          <ul className="space-y-1.5">
+                            {b.options.map((o) => (
+                              <li key={o.id}>
+                                <span className="block text-ink-900">{o.statement}</span>
+                                <span className="mt-0.5 flex items-center gap-2 text-xs text-ink-500">
+                                  {o.trait.name}
+                                  <GroupBadge label={o.trait.area.name} color={o.trait.area.color} />
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </td>
+                        <td className="px-3 py-3 align-top tabular-nums text-ink-600">
+                          {b._count.responses}
+                        </td>
+                        <td className="px-3 py-3 align-top">
+                          <form action={toggleBlockAction}>
+                            <input type="hidden" name="blockId" value={b.id} />
+                            <Button type="submit" variant="secondary" size="sm">
+                              {b.isActive ? 'Disattiva' : 'Riattiva'}
+                            </Button>
+                          </form>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {questions.length > 0 && (
+        <h2 className="mt-8 text-lg font-semibold text-ink-900">
+          Coppie di affermazioni{' '}
+          <span className="font-normal text-ink-500">
+            ({activeQuestions} attive su {questions.length})
+          </span>
+        </h2>
+      )}
+
+      {questions.length > 0 && (
+      <Card className="mt-3 overflow-hidden">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[980px] text-left text-sm">
@@ -89,6 +182,7 @@ export default async function AdminQuestionsPage({
           </div>
         </CardContent>
       </Card>
+      )}
     </>
   );
 }

@@ -1,4 +1,8 @@
 import type { QuestionBankKey } from './questions';
+import type { MpfBankKey } from './mpf/blocks';
+
+/** Slug di un questionario somministrabile, di una metodologia o dell'altra. */
+export type AssessmentKey = QuestionBankKey | MpfBankKey;
 
 export type OrgRoleSeed = {
   slug: string;
@@ -7,7 +11,7 @@ export type OrgRoleSeed = {
   isDefault: boolean;
   sortOrder: number;
   /** Questionari abilitati: `required` distingue "deve farlo" da "può farlo". */
-  assessments: { slug: QuestionBankKey; required: boolean }[];
+  assessments: { slug: AssessmentKey; required: boolean }[];
 };
 
 /**
@@ -15,9 +19,15 @@ export type OrgRoleSeed = {
  * pannello: nomi, descrizioni e questionari abilitati si cambiano da
  * /admin/ruoli senza toccare il codice.
  *
- * Il criterio: tutti partono dal profilo personale; le lenti Leaders e Managers
- * hanno senso solo per chi guida o gestisce persone, e somministrarle a chi non
- * lo fa produrrebbe risposte immaginate invece che osservate.
+ * Il criterio: tutti partono dal profilo personale; le lenti di leadership e di
+ * gestione hanno senso solo per chi guida o gestisce persone, e somministrarle a
+ * chi non lo fa produrrebbe risposte immaginate invece che osservate.
+ *
+ * Da richiedere sono i questionari della Mappa dei Punti di Forza, che è la
+ * metodologia corrente. Quelli storici restano abilitati ma facoltativi: chi li
+ * ha già compilati conserva il suo report, e chi vuole confrontare le due
+ * letture può farlo, senza che a nessuno venga chiesto di compilare due volte
+ * lo stesso profilo.
  */
 export const ORG_ROLES: OrgRoleSeed[] = [
   {
@@ -28,7 +38,9 @@ export const ORG_ROLES: OrgRoleSeed[] = [
     isDefault: true,
     sortOrder: 1,
     assessments: [
-      { slug: 'core12', required: true },
+      { slug: 'mpf_essenziale', required: true },
+      { slug: 'mpf_completa', required: false },
+      { slug: 'core12', required: false },
       { slug: 'full34', required: false },
     ],
   },
@@ -40,9 +52,12 @@ export const ORG_ROLES: OrgRoleSeed[] = [
     isDefault: false,
     sortOrder: 2,
     assessments: [
+      { slug: 'mpf_completa', required: true },
+      { slug: 'mpf_gestione', required: true },
+      { slug: 'mpf_essenziale', required: false },
       { slug: 'core12', required: false },
-      { slug: 'full34', required: true },
-      { slug: 'managers', required: true },
+      { slug: 'full34', required: false },
+      { slug: 'managers', required: false },
     ],
   },
   {
@@ -53,9 +68,12 @@ export const ORG_ROLES: OrgRoleSeed[] = [
     isDefault: false,
     sortOrder: 3,
     assessments: [
+      { slug: 'mpf_completa', required: true },
+      { slug: 'mpf_leadership', required: true },
+      { slug: 'mpf_essenziale', required: false },
       { slug: 'core12', required: false },
-      { slug: 'full34', required: true },
-      { slug: 'leaders', required: true },
+      { slug: 'full34', required: false },
+      { slug: 'leaders', required: false },
     ],
   },
   {
@@ -66,10 +84,14 @@ export const ORG_ROLES: OrgRoleSeed[] = [
     isDefault: false,
     sortOrder: 4,
     assessments: [
+      { slug: 'mpf_completa', required: true },
+      { slug: 'mpf_leadership', required: true },
+      { slug: 'mpf_gestione', required: true },
+      { slug: 'mpf_essenziale', required: false },
       { slug: 'core12', required: false },
-      { slug: 'full34', required: true },
-      { slug: 'leaders', required: true },
-      { slug: 'managers', required: true },
+      { slug: 'full34', required: false },
+      { slug: 'leaders', required: false },
+      { slug: 'managers', required: false },
     ],
   },
 ];

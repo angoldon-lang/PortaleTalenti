@@ -1,27 +1,12 @@
 'use client';
 
 import { useId, useState } from 'react';
-import type { Domain } from '@prisma/client';
 
-import { DomainBadge } from '@/components/ui/domain-badge';
-import { DOMAIN_META } from '@/content/themes';
+import { GroupBadge } from '@/components/ui/group-badge';
+import type { ReportItem } from '@/components/report/report-model';
 import { cn } from '@/lib/utils';
 
-export type TalentCardData = {
-  rank: number;
-  slug: string;
-  name: string;
-  domain: Domain;
-  tagline: string;
-  fullDescription: string;
-  strengths: string[];
-  blindSpots: string[];
-  actionTips: string[];
-  thrivesIn: string[];
-  score: number;
-  /** Sezione aggiuntiva dettata dalla lente del report (Leaders / Managers). */
-  lensNote?: { heading: string; body: string } | null;
-};
+export type TalentCardData = ReportItem;
 
 /**
  * Scheda espandibile di un talento. Usa il pattern disclosure accessibile
@@ -30,7 +15,7 @@ export type TalentCardData = {
 export function TalentCard({ talent, defaultOpen = false }: { talent: TalentCardData; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   const panelId = useId();
-  const color = DOMAIN_META[talent.domain].color;
+  const color = talent.groupColor;
 
   return (
     <article className="card overflow-hidden">
@@ -53,7 +38,7 @@ export function TalentCard({ talent, defaultOpen = false }: { talent: TalentCard
           <span className="min-w-0 flex-1">
             <span className="flex flex-wrap items-center gap-2">
               <span className="text-lg font-semibold text-ink-900">{talent.name}</span>
-              <DomainBadge domain={talent.domain} />
+              <GroupBadge label={talent.groupLabel} color={talent.groupColor} />
             </span>
             <span className="mt-1 block text-sm text-ink-600">{talent.tagline}</span>
           </span>
@@ -84,10 +69,22 @@ export function TalentCard({ talent, defaultOpen = false }: { talent: TalentCard
       <div id={panelId} hidden={!open} className="border-t border-ink-200/70">
         <div className="space-y-6 p-5 sm:p-6">
           <div className="space-y-3 text-[15px] leading-relaxed text-ink-700">
-            {talent.fullDescription.split('\n\n').map((paragraph, i) => (
+            {talent.description.split('\n\n').map((paragraph, i) => (
               <p key={i}>{paragraph}</p>
             ))}
           </div>
+
+          {talent.choiceCounts && (
+            <p className="text-sm text-ink-600">
+              Su questo tratto hai scelto{' '}
+              <strong className="font-semibold text-ink-900">
+                «mi descrive di più» {talent.choiceCounts.most}{' '}
+                {talent.choiceCounts.most === 1 ? 'volta' : 'volte'}
+              </strong>{' '}
+              e «mi descrive di meno» {talent.choiceCounts.least}{' '}
+              {talent.choiceCounts.least === 1 ? 'volta' : 'volte'}.
+            </p>
+          )}
 
           {talent.lensNote && (
             <section className="rounded-xl border border-brand-200 bg-brand-50/60 p-4">

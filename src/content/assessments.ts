@@ -14,9 +14,15 @@ export type AssessmentSeed = {
 };
 
 /**
- * I quattro questionari somministrabili. Lo `slug` coincide con la chiave della
- * banca di item in `questions.ts`: ogni assessment ha item propri, non è lo
- * stesso questionario con etichette diverse.
+ * I quattro questionari storici. Lo `slug` coincide con la chiave della banca
+ * di item in `questions.ts`: ogni assessment ha item propri, non è lo stesso
+ * questionario con etichette diverse.
+ *
+ * Restano attivi accanto ai quattro della Mappa dei Punti di Forza
+ * (`mpf/assessments.ts`), che usano tassonomia e formato nuovi. L'ordinamento
+ * li colloca dopo — da 11 in poi — perché il modello proprietario è quello che
+ * il portale propone per primo, non perché questi siano dismessi: le
+ * compilazioni già fatte e i loro report continuano a funzionare.
  */
 export const ASSESSMENTS: AssessmentSeed[] = [
   {
@@ -29,7 +35,7 @@ export const ASSESSMENTS: AssessmentSeed[] = [
     topCount: 5,
     timerSeconds: 20,
     estimatedMinutes: 22,
-    sortOrder: 1,
+    sortOrder: 11,
   },
   {
     slug: 'full34',
@@ -41,7 +47,7 @@ export const ASSESSMENTS: AssessmentSeed[] = [
     topCount: 10,
     timerSeconds: 20,
     estimatedMinutes: 45,
-    sortOrder: 2,
+    sortOrder: 12,
   },
   {
     slug: 'leaders',
@@ -53,7 +59,7 @@ export const ASSESSMENTS: AssessmentSeed[] = [
     topCount: 7,
     timerSeconds: 20,
     estimatedMinutes: 45,
-    sortOrder: 3,
+    sortOrder: 13,
   },
   {
     slug: 'managers',
@@ -65,7 +71,7 @@ export const ASSESSMENTS: AssessmentSeed[] = [
     topCount: 7,
     timerSeconds: 20,
     estimatedMinutes: 45,
-    sortOrder: 4,
+    sortOrder: 14,
   },
 ];
 
@@ -96,5 +102,11 @@ export const LENS_META: Record<
     detailHeading: 'I tuoi talenti nella gestione del team',
     detailIntro:
       'Per ciascun tema dominante trovi indicazioni pratiche su come usarlo nella gestione quotidiana dei collaboratori.',
+  },
+  FULL_RANKING: {
+    label: 'Profilo completo',
+    detailHeading: 'I tuoi tratti dominanti',
+    detailIntro:
+      'I tratti in evidenza sono quelli su cui costruire. Più in basso trovi l’ordinamento completo di tutti e 30.',
   },
 };

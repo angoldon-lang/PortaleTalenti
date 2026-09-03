@@ -1,9 +1,35 @@
 # Portale Talenti
 
-Portale web per l'assessment dei punti di forza, ispirato al modello delle quattro
-macro-aree di Gallup CliftonStrengths®. L'utente sceglie fra **quattro
-questionari distinti**, li compila e riceve un report con i talenti dominanti, il
-bilanciamento fra le macro-aree e le schede di dettaglio, esportabile in PDF.
+Portale web per l'assessment dei punti di forza. L'utente sceglie fra i
+questionari abilitati per il suo ruolo, li compila e riceve un report con i
+punti di forza dominanti, il bilanciamento fra le macro-aree e le schede di
+dettaglio, esportabile in PDF.
+
+Il portale somministra **due metodologie**, entrambe attive.
+
+### Mappa dei Punti di Forza — il modello proprietario
+
+Tassonomia, item e algoritmo originali: cinque macro-aree per trenta tratti, e
+blocchi quartetto a scelta forzata («quale ti descrive di più, quale di meno»)
+invece di una scala di accordo. È la metodologia che il portale propone per
+prima.
+
+| Questionario | Blocchi | Durata | Report |
+| --- | --- | --- | --- |
+| Mappa dei Punti di Forza — Essenziale | 53 | ~17 min | Top 5 |
+| Mappa dei Punti di Forza — Completa | 68 | ~22 min | Top 10 + classifica 1-30 |
+| Mappa dei Punti di Forza — Leadership | 53 | ~17 min | Top 7, lente leadership |
+| Mappa dei Punti di Forza — Gestione del Team | 53 | ~17 min | Top 7, lente gestione team |
+
+Il modello, le ragioni delle sue scelte e la sua verifica sono documentati in
+[`docs/MAPPA-PUNTI-DI-FORZA.md`](docs/MAPPA-PUNTI-DI-FORZA.md).
+
+### Modello precedente
+
+I quattro questionari storici, ispirati al modello delle quattro macro-aree di
+Gallup CliftonStrengths®, restano disponibili e funzionanti: chi li ha già
+compilati conserva il suo report, e chi vuole confrontare le due letture può
+farlo. I ruoli organizzativi li lasciano abilitati ma non li richiedono più.
 
 | Questionario | Temi | Item | Durata | Report |
 | --- | --- | --- | --- | --- |
@@ -12,13 +38,17 @@ bilanciamento fra le macro-aree e le schede di dettaglio, esportabile in PDF.
 | CliftonStrengths for Leaders | 34 | 102 | ~34 min | Top 7, lente leadership |
 | CliftonStrengths for Managers | 34 | 102 | ~34 min | Top 7, lente gestione team |
 
-Ogni questionario ha la **propria banca di item**: le affermazioni di *for
-Leaders* parlano di direzione e decisioni difficili, quelle di *for Managers* di
-deleghe, feedback e carichi di lavoro. Non è lo stesso test con etichette diverse.
+In entrambe le metodologie ogni questionario ha la **propria banca di item**: le
+affermazioni della versione per chi guida parlano di direzione e decisioni
+difficili, quelle per chi gestisce di deleghe, feedback e carichi di lavoro. Non
+è lo stesso test con etichette diverse.
 
-> Progetto dimostrativo, senza alcuna affiliazione con Gallup, Inc. Temi e item
-> sono contenuti originali costruiti sul modello concettuale, non una riproduzione
-> dello strumento Gallup.
+> Nessuna affiliazione con Gallup, Inc. I contenuti dei questionari storici sono
+> originali e costruiti sul modello concettuale, non una riproduzione dello
+> strumento Gallup; la Mappa dei Punti di Forza è un modello indipendente, con
+> architettura, denominazioni, contenuti e algoritmo propri. Nulla di quanto
+> scritto qui è un parere legale: per un uso commerciale fai condurre a un
+> legale una ricerca di anteriorità su marchi e denominazioni.
 
 ---
 
@@ -235,17 +265,24 @@ pg_dump -Fc "$DATABASE_URL" > backup-$(date +%F).dump
 | `npm run db:migrate` | crea/applica una migrazione |
 | `npm run db:seed` | popola temi, item e utenti demo |
 | `npm run db:studio` | Prisma Studio |
-| `npx tsx scripts/simulate.ts` | valida l'algoritmo su un profilo noto |
-| `python3 scripts/gen_questions.py` | rigenera le quattro banche di item |
+| `npx tsx scripts/simulate.ts` | valida l'algoritmo storico su un profilo noto |
+| `npx tsx scripts/mpf/simula.ts` | valida l'algoritmo della Mappa dei Punti di Forza |
+| `python3 scripts/mpf/verifica_indipendenza.py` | controlla che la tassonomia non collida con denominazioni note |
+| `python3 scripts/gen_questions.py` | rigenera le banche di item del modello storico |
+| `python3 scripts/mpf/gen_blocchi.py` | rigenera i blocchi della Mappa dei Punti di Forza |
 | `node scripts/e2e.mjs` | smoke test end-to-end (richiede il server avviato) |
+
+`ASSESSMENT=<slug> node scripts/e2e.mjs` sceglie il questionario da compilare
+nello smoke test: serve a coprire entrambi i formati di item.
 
 ---
 
 ## Ruoli organizzativi
 
-Non tutti devono compilare tutto: somministrare *for Managers* a chi non gestisce
-nessuno produce risposte immaginate invece che osservate. Da **Amministrazione →
-Ruoli** decidi quali questionari vede ciascun ruolo, e con quale urgenza:
+Non tutti devono compilare tutto: somministrare la lente di gestione a chi non
+gestisce nessuno produce risposte immaginate invece che osservate. Da
+**Amministrazione → Ruoli** decidi quali questionari vede ciascun ruolo, e con
+quale urgenza:
 
 - **Abilitato** — la persona lo trova fra i suoi questionari;
 - **Richiesto** — compare evidenziato come da compilare.
@@ -334,7 +371,8 @@ npx prisma migrate reset     # cancella i dati, riapplica lo schema, riesegue il
 
 ## Documentazione
 
-- [`docs/MODELLO.md`](docs/MODELLO.md) — i 12 temi, le 4 macro-aree, il design del questionario e l'algoritmo di calcolo
+- [`docs/MAPPA-PUNTI-DI-FORZA.md`](docs/MAPPA-PUNTI-DI-FORZA.md) — il modello proprietario: le 5 aree, i 30 tratti, la scelta forzata, l'algoritmo e la sua verifica
+- [`docs/MODELLO.md`](docs/MODELLO.md) — il modello precedente: i temi, le 4 macro-aree, il design del questionario e l'algoritmo
 - [`docs/MODULI.md`](docs/MODULI.md) — i quattro moduli funzionali, file per file
 - [`docs/DEPLOY.md`](docs/DEPLOY.md) — messa in produzione e checklist
 

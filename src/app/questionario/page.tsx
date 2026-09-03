@@ -18,8 +18,10 @@ export default async function AssessmentPickerPage() {
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
         <h1 className="text-3xl font-semibold tracking-tight text-ink-900">Scegli il questionario</h1>
         <p className="mt-2 max-w-2xl text-ink-600">
-          Questi sono i questionari abilitati per il tuo ruolo. Se è la prima volta, parti da
-          Talenti Essenziale; se vuoi la classifica completa dei 34 temi, scegli CliftonStrengths 34.
+          Questi sono i questionari abilitati per il tuo ruolo. Se è la prima volta, parti dalla
+          Mappa dei Punti di Forza — Essenziale; per la classifica completa dei trenta tratti
+          scegli la versione Completa. I questionari con la dicitura «modello precedente» restano
+          disponibili per chi li ha già compilati e vuole confrontare le due letture.
         </p>
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2">
@@ -35,6 +37,11 @@ export default async function AssessmentPickerPage() {
                     {a.isRequired && !a.result && (
                       <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-900">
                         Richiesto
+                      </span>
+                    )}
+                    {a.itemFormat === 'PAIRED_LIKERT' && (
+                      <span className="rounded-full bg-ink-100 px-2.5 py-0.5 text-xs font-medium text-ink-600">
+                        Modello precedente
                       </span>
                     )}
                   </span>

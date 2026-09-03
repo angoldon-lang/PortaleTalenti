@@ -92,7 +92,14 @@ export async function listAssessmentsForUser(userId: string, isAdmin = false) {
     prisma.assessment.findMany({
       where: { isActive: true },
       orderBy: { sortOrder: 'asc' },
-      include: { _count: { select: { questions: { where: { isActive: true } } } } },
+      include: {
+        _count: {
+          select: {
+            questions: { where: { isActive: true } },
+            blocks: { where: { isActive: true } },
+          },
+        },
+      },
     }),
     prisma.testSession.findMany({
       where: { userId, status: 'IN_PROGRESS' },
@@ -113,7 +120,10 @@ export async function listAssessmentsForUser(userId: string, isAdmin = false) {
     .filter((a) => !allowedBySlug || allowedBySlug.has(a.slug))
     .map((a) => ({
       ...a,
-      questionCount: a._count.questions,
+      // Il conteggio mostrato in copertina è quello degli item del formato che
+      // l'assessment usa davvero: domande o blocchi.
+      questionCount:
+        a.itemFormat === 'FORCED_CHOICE_QUARTET' ? a._count.blocks : a._count.questions,
       progress: inProgress.get(a.id) ?? null,
       result: latestResult.get(a.id) ?? null,
       isRequired: allowedBySlug?.get(a.slug)?.isRequired ?? false,
@@ -348,7 +358,12 @@ export async function completeTest(params: {
 
 const reportInclude = {
   assessment: true,
+  // Un report porta con sé i punteggi della metodologia con cui è stato
+  // prodotto: quelli dell'altra restano semplicemente vuoti. `itemFormat`
+  // dell'assessment dice quale delle due leggere.
   themeScores: { include: { theme: true }, orderBy: { rank: 'asc' } },
+  traitScores: { include: { trait: { include: { area: true } } }, orderBy: { rank: 'asc' } },
+  areaScores: { include: { area: true } },
   testSession: {
     select: { startedAt: true, completedAt: true, totalQuestions: true, timerSeconds: true },
   },
@@ -393,7 +408,7 @@ export async function listUserResults(userId: string) {
       computedAt: true,
       topThemeSlugs: true,
       durationSeconds: true,
-      assessment: { select: { slug: true, name: true, lens: true } },
+      assessment: { select: { slug: true, name: true, lens: true, itemFormat: true } },
     },
   });
 }

@@ -70,6 +70,25 @@ export async function toggleQuestionAction(formData: FormData) {
   revalidatePath('/admin/domande');
 }
 
+export async function toggleBlockAction(formData: FormData) {
+  await requireAdmin();
+
+  const blockId = String(formData.get('blockId') ?? '');
+  if (!blockId) return;
+
+  const block = await prisma.choiceBlock.findUnique({
+    where: { id: blockId },
+    select: { isActive: true },
+  });
+  if (!block) return;
+
+  await prisma.choiceBlock.update({
+    where: { id: blockId },
+    data: { isActive: !block.isActive },
+  });
+  revalidatePath('/admin/domande');
+}
+
 // ===========================================================================
 // Creazione utenti
 // ===========================================================================

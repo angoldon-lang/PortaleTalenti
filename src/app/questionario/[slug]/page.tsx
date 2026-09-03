@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { AppShell } from '@/components/app-shell';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { QuestionnaireRunner } from '@/components/questionnaire/questionnaire-runner';
+import { BlockRunner } from '@/components/questionnaire/block-runner';
 import { requireUser } from '@/server/guards';
 import {
   AssessmentNotAllowedError,
@@ -12,6 +13,7 @@ import {
   getLatestReport,
   getOrCreateTestSession,
 } from '@/server/test-service';
+import { getOrCreateBlockSession } from '@/server/mpf-service';
 import { restartTestAction } from '@/server/test-actions';
 
 export async function generateMetadata({
@@ -38,10 +40,18 @@ export default async function QuestionnairePage({
   if (!assessment) notFound();
 
   const isAdmin = user.role === 'ADMIN';
+  // I due formati hanno sessione e componente propri; il resto della pagina —
+  // avviso di ruolo, introduzione, ripresa — è lo stesso.
+  const isQuartet = assessment.itemFormat === 'FORCED_CHOICE_QUARTET';
 
-  let state;
+  let likertState: Awaited<ReturnType<typeof getOrCreateTestSession>> | null = null;
+  let blockState: Awaited<ReturnType<typeof getOrCreateBlockSession>> | null = null;
   try {
-    state = await getOrCreateTestSession(user.id, slug, isAdmin);
+    if (isQuartet) {
+      blockState = await getOrCreateBlockSession(user.id, slug, isAdmin);
+    } else {
+      likertState = await getOrCreateTestSession(user.id, slug, isAdmin);
+    }
   } catch (error) {
     if (error instanceof AssessmentNotAllowedError) {
       return (
@@ -66,7 +76,10 @@ export default async function QuestionnairePage({
 
   const existingReport = await getLatestReport(user.id, slug);
 
-  const showIntro = start !== '1' && state.answeredCount === 0;
+  const answeredCount = blockState?.answeredCount ?? likertState!.answeredCount;
+  const timerSeconds = blockState?.timerSeconds ?? likertState!.timerSeconds;
+  const itemCount = blockState?.totalBlocks ?? likertState!.totalQuestions;
+  const showIntro = start !== '1' && answeredCount === 0;
 
   return (
     <AppShell user={{ ...user, role: user.role ?? 'USER' }}>
@@ -79,20 +92,40 @@ export default async function QuestionnairePage({
             {assessment.name}
           </h1>
           <p className="mt-3 text-ink-600">
-            {state.totalQuestions} coppie di affermazioni, circa {assessment.estimatedMinutes}{' '}
-            minuti. Per ciascuna scegli quanto ti descrive l’una rispetto all’altra.
+            {isQuartet ? (
+              <>
+                {itemCount} blocchi da quattro affermazioni, circa {assessment.estimatedMinutes}{' '}
+                minuti. In ciascuno indichi quella che ti descrive di più e quella che ti descrive
+                di meno.
+              </>
+            ) : (
+              <>
+                {itemCount} coppie di affermazioni, circa {assessment.estimatedMinutes} minuti. Per
+                ciascuna scegli quanto ti descrive l’una rispetto all’altra.
+              </>
+            )}
           </p>
 
           <ul className="mt-8 space-y-4">
             <Tip title="Rispondi d’istinto">
-              {state.timerSeconds > 0
-                ? `Hai ${state.timerSeconds} secondi per domanda. La prima reazione è quasi sempre la più
-                   fedele: il tempo serve proprio a impedire la risposta "giusta" costruita a tavolino.`
+              {timerSeconds > 0
+                ? `Hai ${timerSeconds} secondi per ${isQuartet ? 'blocco' : 'domanda'}. La prima
+                   reazione è quasi sempre la più fedele: il tempo serve proprio a impedire la
+                   risposta "giusta" costruita a tavolino.`
                 : 'La prima reazione è quasi sempre la più fedele. Non ragionare troppo su ogni item.'}
             </Tip>
-            <Tip title="Non esistono risposte migliori">
-              Nessun profilo vale più di un altro. Il report descrive come funzioni, non quanto vali.
-            </Tip>
+            {isQuartet ? (
+              <Tip title="Sceglierai fra affermazioni tutte plausibili">
+                Le quattro frasi di ogni blocco descrivono qualità diverse e nessuna è sbagliata.
+                Doverne scegliere una sola è il punto: è il confronto a dire che cosa conta di più
+                per te.
+              </Tip>
+            ) : (
+              <Tip title="Non esistono risposte migliori">
+                Nessun profilo vale più di un altro. Il report descrive come funzioni, non quanto
+                vali.
+              </Tip>
+            )}
             <Tip title="Puoi interrompere quando vuoi">
               Ogni risposta viene salvata subito. Se chiudi la pagina, riprendi dallo stesso punto.
             </Tip>
@@ -118,7 +151,11 @@ export default async function QuestionnairePage({
         </div>
       ) : (
         <>
-          <QuestionnaireRunner state={state} />
+          {blockState ? (
+            <BlockRunner state={blockState} />
+          ) : (
+            <QuestionnaireRunner state={likertState!} />
+          )}
           <div className="mx-auto max-w-3xl px-4 pb-16 text-center sm:px-6">
             <form action={restartTestAction}>
               <input type="hidden" name="assessment" value={slug} />
