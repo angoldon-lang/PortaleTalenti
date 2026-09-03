@@ -199,6 +199,9 @@ dall'amministratore non viene invece rimandata a schermo, perché la conosce gi�
 `/admin/utenti` — ricerca per nome o email, stato della compilazione, numero di
 report, promozione/rimozione del ruolo Admin.
 
+`/admin/personalizzazione` — logo, nome dell'organizzazione, colore principale
+e riga in fondo al PDF. Vedi *Personalizzazione* più sotto.
+
 `/admin/domande` — elenco degli item con i temi collegati e il numero di risposte
 raccolte, filtrabile per questionario; attivazione/disattivazione. La pagina
 avverte che disattivare item riduce la copertura dei due temi coinvolti e che
@@ -221,3 +224,44 @@ privacy prima di somministrare il primo questionario.
 profilo. I valori che iniziano con `=`, `+`, `-` o `@` vengono neutralizzati con
 un apice: aprire il file in un foglio di calcolo non deve poter eseguire nulla
 (*CSV injection*).
+
+
+---
+
+## Personalizzazione
+
+| File | Ruolo |
+| --- | --- |
+| `src/lib/branding.ts` | genera l'intera scala di tinte da un solo colore |
+| `src/server/settings-service.ts` | lettura della configurazione, con cache per richiesta |
+| `src/app/admin/personalizzazione/page.tsx` | il pannello |
+| `src/components/brand-mark.tsx` | logo o nome, usato in intestazione, home e accesso |
+| `src/app/api/branding/logo/route.ts` | serve il logo caricato |
+
+**Dove finisce il logo.** Conservato nel database come `Bytes`, non su
+filesystem: non servono volumi persistenti né storage esterni, funziona anche in
+ambienti serverless, e il backup del database porta con sé anche il logo. Un
+logo pesa pochi KB e il limite imposto è 512 KB.
+
+L'endpoint che lo serve è pubblico di proposito — compare nella pagina di
+accesso, prima dell'autenticazione — e usa un ETag derivato dal momento del
+caricamento: il browser riusa l'immagine, ma un logo nuovo si vede subito.
+
+**Il colore.** L'interfaccia usa dieci gradazioni del colore del marchio.
+Chiederle tutte all'amministratore sarebbe assurdo, quindi `buildBrandScale()`
+le ricava da un unico esadecimale: converte in HSL, applica una curva di
+luminosità e un fattore di saturazione per gradino, e **ancora il gradino 600
+esattamente al colore scelto** — quello dei pulsanti principali è il colore che
+hai indicato, non una sua approssimazione. Lo scostamento di luminosità si
+propaga agli altri gradini in modo attenuato verso gli estremi, così i toni
+chiarissimi restano chiari anche con un colore molto scuro.
+
+Tailwind riceve la palette come variabili CSS nella forma
+`rgb(var(--brand-600) / <alpha-value>)`, che mantiene funzionanti le utility di
+opacità. I default stanno in `globals.css` e il layout li sovrascrive con un
+blocco `<style>` generato dal colore salvato.
+
+**Il PDF** non usa i CSS: riceve il colore come esadecimale e il logo come data
+URI. `@react-pdf/renderer` non sa disegnare gli SVG dentro `<Image>`, quindi un
+logo SVG viene mostrato nel sito ma sostituito dal nome testuale nel report; il
+pannello lo dice esplicitamente quando il logo caricato è un SVG.

@@ -3,12 +3,15 @@
 import { randomBytes } from 'node:crypto';
 
 import { revalidatePath } from 'next/cache';
+import type { Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 
 import { prisma } from '@/lib/prisma';
 import { adminCreateUserSchema } from '@/lib/validation';
+import { isValidHexColor } from '@/lib/branding';
 import { requireAdmin } from './guards';
+import { SETTINGS_ID } from './settings-service';
 
 const roleSchema = z.object({
   userId: z.string().min(1),
@@ -118,25 +121,111 @@ export async function createUserAction(
   const generated = chosen ? null : generateTemporaryPassword();
   const plainPassword = chosen || generated!;
 
-  const user = await prisma.user.create({
-    data: { name, email, role, passwordHash: await bcrypt.hash(plainPassword, 12) },
-    select: { id: true, email: true },
-  });
+  // Un errore qui (client Prisma disallineato, database non migrato, vincolo
+  // violato) deve arrivare all'amministratore come messaggio leggibile: senza
+  // questo blocco l'azione fallirebbe in silenzio e il form resterebbe fermo.
+  try {
+    const user = await prisma.user.create({
+      data: { name, email, role, passwordHash: await bcrypt.hash(plainPassword, 12) },
+      select: { id: true, email: true },
+    });
 
-  await prisma.adminAuditLog.create({
-    data: {
-      action: 'USER_CREATED',
-      actorId: admin.id,
-      actorEmail: admin.email ?? '',
-      subjectId: user.id,
-      subjectEmail: user.email,
-      detail: `ruolo ${role}`,
-    },
-  });
+    await prisma.adminAuditLog.create({
+      data: {
+        action: 'USER_CREATED',
+        actorId: admin.id,
+        actorEmail: admin.email ?? '',
+        subjectId: user.id,
+        subjectEmail: user.email,
+        detail: `ruolo ${role}`,
+      },
+    });
+  } catch (error) {
+    console.error('createUserAction:', error);
+    const detail = error instanceof Error ? error.message.split('\n')[0] : String(error);
+    return { error: `Creazione non riuscita: ${detail}` };
+  }
 
   revalidatePath('/admin/utenti');
 
   // La password in chiaro torna solo se generata dal portale: se l'ha scelta
   // l'amministratore, la conosce già e non ha senso rimandargliela indietro.
   return { created: { name, email, role, password: generated } };
+}
+
+// ===========================================================================
+// Personalizzazione (logo, nome, colore)
+// ===========================================================================
+
+/** Formati accettati per il logo. SVG è ammesso ma non finisce nel PDF. */
+const LOGO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/svg+xml'];
+const LOGO_MAX_BYTES = 512 * 1024;
+
+export type BrandingState = { error?: string; success?: string };
+
+export async function saveBrandingAction(
+  _prev: BrandingState,
+  formData: FormData,
+): Promise<BrandingState> {
+  const admin = await requireAdmin();
+
+  const organizationName = String(formData.get('organizationName') ?? '').trim();
+  if (organizationName.length < 2 || organizationName.length > 60) {
+    return { error: 'Il nome deve avere fra 2 e 60 caratteri.' };
+  }
+
+  const primaryColor = String(formData.get('primaryColor') ?? '').trim();
+  if (!isValidHexColor(primaryColor)) {
+    return { error: 'Il colore deve essere un esadecimale, es. #164ede.' };
+  }
+
+  const reportFooterRaw = String(formData.get('reportFooter') ?? '').trim();
+  if (reportFooterRaw.length > 120) {
+    return { error: 'La riga in fondo al PDF non può superare i 120 caratteri.' };
+  }
+
+  const data: Prisma.AppSettingsUncheckedCreateInput = {
+    organizationName,
+    primaryColor,
+    reportFooter: reportFooterRaw || null,
+  };
+
+  if (formData.get('removeLogo') === 'on') {
+    data.logoData = null;
+    data.logoMimeType = null;
+    data.logoUpdatedAt = null;
+  } else {
+    const file = formData.get('logo');
+    if (file instanceof File && file.size > 0) {
+      if (!LOGO_MIME_TYPES.includes(file.type)) {
+        return { error: 'Formato non supportato: usa PNG, JPEG o SVG.' };
+      }
+      if (file.size > LOGO_MAX_BYTES) {
+        return { error: `Il logo supera i ${LOGO_MAX_BYTES / 1024} KB.` };
+      }
+      data.logoData = Buffer.from(await file.arrayBuffer());
+      data.logoMimeType = file.type;
+      data.logoUpdatedAt = new Date();
+    }
+  }
+
+  await prisma.appSettings.upsert({
+    where: { id: SETTINGS_ID },
+    update: data,
+    create: { id: SETTINGS_ID, ...data },
+  });
+
+  await prisma.adminAuditLog.create({
+    data: {
+      action: 'BRANDING_UPDATED',
+      actorId: admin.id,
+      actorEmail: admin.email ?? '',
+      detail: `nome "${organizationName}", colore ${primaryColor}`,
+    },
+  });
+
+  // Nome, colore e logo compaiono nell'intestazione di ogni pagina.
+  revalidatePath('/', 'layout');
+
+  return { success: 'Personalizzazione salvata.' };
 }

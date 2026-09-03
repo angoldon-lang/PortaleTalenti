@@ -1,15 +1,21 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: {
-    default: 'Portale Talenti — scopri i tuoi punti di forza',
-    template: '%s · Portale Talenti',
-  },
-  description:
-    'Questionario psicometrico e report personalizzato sui tuoi talenti dominanti, ispirato al modello delle quattro macro-aree di Gallup CliftonStrengths.',
-  robots: { index: true, follow: true },
-};
+import { brandScaleToCss } from '@/lib/branding';
+import { getBranding } from '@/server/settings-service';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { organizationName } = await getBranding();
+  return {
+    title: {
+      default: `${organizationName} — scopri i tuoi punti di forza`,
+      template: `%s · ${organizationName}`,
+    },
+    description:
+      'Questionario psicometrico e report personalizzato sui tuoi talenti dominanti, ispirato al modello delle quattro macro-aree di Gallup CliftonStrengths.',
+    robots: { index: true, follow: true },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: '#1d63f1',
@@ -17,9 +23,16 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const { primaryColor } = await getBranding();
+
   return (
     <html lang="it">
+      <head>
+        {/* La palette del marchio è generata dal colore scelto in
+            /admin/personalizzazione e sovrascrive i default di globals.css. */}
+        <style dangerouslySetInnerHTML={{ __html: brandScaleToCss(primaryColor) }} />
+      </head>
       <body className="min-h-dvh">
         <a
           href="#contenuto"

@@ -241,6 +241,23 @@ pg_dump -Fc "$DATABASE_URL" > backup-$(date +%F).dump
 
 ---
 
+## Personalizzazione
+
+Da **Amministrazione → Personalizzazione** puoi impostare logo, nome
+dell'organizzazione, colore principale e la riga in fondo al PDF. Tutto viene
+applicato al sito (intestazione, home, pagina di accesso, report a schermo) e al
+PDF scaricabile.
+
+- **Logo**: PNG, JPEG o SVG, massimo 512 KB. Viene conservato nel database,
+  quindi non servono volumi persistenti e il backup se lo porta dietro. Un logo
+  SVG si vede nel sito ma non nel PDF, perché il generatore di PDF non disegna
+  gli SVG: per avere il logo anche nei report usa un PNG o un JPEG.
+- **Colore**: dal singolo colore che scegli viene generata l'intera scala di
+  tinte dell'interfaccia. Il colore indicato è esattamente quello dei pulsanti
+  principali.
+
+---
+
 ## Nota sulle dipendenze
 
 `package.json` contiene due `overrides`, entrambi necessari per avere

@@ -4,6 +4,7 @@ import { renderToBuffer } from '@react-pdf/renderer';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { getReportById } from '@/server/test-service';
+import { getBranding, getLogoDataUri } from '@/server/settings-service';
 import { ReportDocument } from '@/lib/pdf-report';
 
 // Il rendering PDF richiede API Node (stream, buffer): niente Edge runtime.
@@ -54,7 +55,19 @@ export async function GET(
     });
   }
 
-  const buffer = await renderToBuffer(<ReportDocument report={report} />);
+  const [branding, logoDataUri] = await Promise.all([getBranding(), getLogoDataUri()]);
+
+  const buffer = await renderToBuffer(
+    <ReportDocument
+      report={report}
+      branding={{
+        organizationName: branding.organizationName,
+        primaryColor: branding.primaryColor,
+        logoDataUri,
+        footer: branding.reportFooter ?? `${branding.organizationName} · documento riservato`,
+      }}
+    />,
+  );
   const filename = `${slugify(report.assessment.name)}-${slugify(
     report.user.name ?? report.user.email,
   )}.pdf`;

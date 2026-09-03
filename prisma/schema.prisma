@@ -338,6 +338,7 @@ enum AdminAction {
   RESULTS_EXPORT
   USER_CREATED
   ROLE_CHANGED
+  BRANDING_UPDATED
 }
 
 /// Un report descrive preferenze e stile di lavoro di una persona: ogni accesso
@@ -364,4 +365,35 @@ model AdminAuditLog {
   @@index([createdAt])
   @@index([subjectId])
   @@map("admin_audit_logs")
+}
+
+// ===========================================================================
+// Personalizzazione (logo, nome, colore) applicata al sito e ai report
+// ===========================================================================
+
+/// Riga unica di configurazione: `id` è fissato a "singleton" così non possono
+/// esistere due configurazioni in conflitto.
+model AppSettings {
+  id String @id @default("singleton")
+
+  /// Nome mostrato nell'intestazione, nel titolo delle pagine e nel PDF.
+  organizationName String @default("Portale Talenti")
+
+  /// Logo caricato dall'amministratore, conservato nel database: niente
+  /// dipendenze da filesystem o storage esterni, e il backup del database
+  /// porta con sé anche il logo.
+  logoData      Bytes?
+  logoMimeType  String?
+  logoUpdatedAt DateTime?
+
+  /// Colore principale in formato esadecimale: da questo si genera l'intera
+  /// scala di tinte usata dall'interfaccia.
+  primaryColor String @default("#164ede")
+
+  /// Riga libera in fondo a ogni pagina del PDF (es. ragione sociale).
+  reportFooter String?
+
+  updatedAt DateTime @updatedAt
+
+  @@map("app_settings")
 }

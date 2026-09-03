@@ -4,17 +4,17 @@ import { ButtonLink } from '@/components/ui/button';
 import { DOMAIN_META, DOMAIN_ORDER, THEMES } from '@/content/themes';
 import { ASSESSMENTS } from '@/content/assessments';
 import { getCurrentUser } from '@/server/guards';
+import { getBranding } from '@/server/settings-service';
+import { BrandMark } from '@/components/brand-mark';
 
 export default async function HomePage() {
-  const user = await getCurrentUser();
+  const [user, branding] = await Promise.all([getCurrentUser(), getBranding()]);
 
   return (
     <div className="min-h-dvh bg-white">
       <header className="border-b border-ink-200/70">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <span className="text-base font-semibold tracking-tight">
-            Portale<span className="text-brand-600">Talenti</span>
-          </span>
+          <BrandMark href={null} />
           <nav className="flex items-center gap-2">
             {user ? (
               <ButtonLink href="/dashboard" size="sm">
@@ -160,7 +160,7 @@ export default async function HomePage() {
 
       <footer className="border-t border-ink-200/70">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-8 text-sm text-ink-500 sm:px-6">
-          <p>Portale Talenti — progetto dimostrativo di assessment dei punti di forza.</p>
+          <p>{branding.organizationName} — assessment dei punti di forza.</p>
           <p>
             Modello ispirato a Gallup CliftonStrengths®, senza alcuna affiliazione con Gallup, Inc.
           </p>

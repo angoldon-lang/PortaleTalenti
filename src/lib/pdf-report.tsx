@@ -1,5 +1,6 @@
 import {
   Document,
+  Image,
   Page,
   StyleSheet,
   Svg,
@@ -18,8 +19,18 @@ const COLORS = {
   ink500: '#647691',
   ink300: '#b0bac9',
   ink100: '#eceef2',
-  brand: '#164ede',
   white: '#ffffff',
+};
+
+/** Personalizzazione applicata al documento. */
+export type ReportBranding = {
+  organizationName: string;
+  /** Colore principale in esadecimale. */
+  primaryColor: string;
+  /** Logo come data URI PNG/JPEG; null se assente o in formato non stampabile. */
+  logoDataUri: string | null;
+  /** Riga in fondo a ogni pagina. */
+  footer: string;
 };
 
 const styles = StyleSheet.create({
@@ -32,8 +43,8 @@ const styles = StyleSheet.create({
     lineHeight: 1.55,
     fontFamily: 'Helvetica',
   },
-  coverBar: { height: 4, backgroundColor: COLORS.brand, marginBottom: 28 },
-  eyebrow: { fontSize: 9, color: COLORS.brand, textTransform: 'uppercase', letterSpacing: 1.2 },
+  coverBar: { height: 4, marginBottom: 20 },
+  eyebrow: { fontSize: 9, textTransform: 'uppercase', letterSpacing: 1.2 },
   h1: {
     fontSize: 24,
     color: COLORS.ink900,
@@ -122,11 +133,13 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: COLORS.ink300,
   },
+  logo: { height: 34, width: 'auto', maxWidth: 200, objectFit: 'contain', marginBottom: 14 },
+  orgName: { fontSize: 11, color: COLORS.ink500, marginBottom: 12 },
   lensBox: {
     marginTop: 2,
     marginBottom: 8,
     padding: 9,
-    backgroundColor: '#eef6ff',
+    backgroundColor: COLORS.ink100,
     borderRadius: 5,
   },
   disclaimer: {
@@ -193,7 +206,14 @@ function DonutChart({ data }: { data: { value: number; color: string }[] }) {
   );
 }
 
-export function ReportDocument({ report }: { report: FullReport }) {
+export function ReportDocument({
+  report,
+  branding,
+}: {
+  report: FullReport;
+  branding: ReportBranding;
+}) {
+  const brand = branding.primaryColor;
   const domainValues: Record<string, number> = {
     EXECUTING: report.executingScore,
     INFLUENCING: report.influencingScore,
@@ -223,7 +243,7 @@ export function ReportDocument({ report }: { report: FullReport }) {
   return (
     <Document
       title={`${report.assessment.name} — ${owner}`}
-      author="Portale Talenti"
+      author={branding.organizationName}
       subject="Report dei talenti dominanti"
       language="it"
     >
@@ -231,13 +251,18 @@ export function ReportDocument({ report }: { report: FullReport }) {
       <Page size="A4" style={styles.page}>
         <View style={styles.footerRule} fixed />
         <Text style={styles.footerLeft} fixed>
-          Portale Talenti · documento riservato
+          {branding.footer}
         </Text>
         <Text style={styles.footerRight} fixed>
           {owner} · {generatedOn}
         </Text>
-        <View style={styles.coverBar} />
-        <Text style={styles.eyebrow}>{report.assessment.name}</Text>
+        <View style={[styles.coverBar, { backgroundColor: brand }]} />
+        {branding.logoDataUri ? (
+          <Image src={branding.logoDataUri} style={styles.logo} />
+        ) : (
+          <Text style={styles.orgName}>{branding.organizationName}</Text>
+        )}
+        <Text style={[styles.eyebrow, { color: brand }]}>{report.assessment.name}</Text>
         <Text style={styles.h1}>{owner}</Text>
         <Text style={styles.meta}>
           Compilato il {generatedOn} · {report.testSession.totalQuestions} item ·{' '}
@@ -309,12 +334,12 @@ export function ReportDocument({ report }: { report: FullReport }) {
       <Page size="A4" style={styles.page}>
         <View style={styles.footerRule} fixed />
         <Text style={styles.footerLeft} fixed>
-          Portale Talenti · documento riservato
+          {branding.footer}
         </Text>
         <Text style={styles.footerRight} fixed>
           {owner} · {generatedOn}
         </Text>
-        <Text style={styles.eyebrow}>Schede di dettaglio</Text>
+        <Text style={[styles.eyebrow, { color: brand }]}>Schede di dettaglio</Text>
         <Text style={[styles.h1, { fontSize: 20 }]}>{LENS_META[lens].detailHeading}</Text>
 
         {topThemes.map((s) => (
@@ -367,7 +392,7 @@ export function ReportDocument({ report }: { report: FullReport }) {
 
             <View style={{ marginTop: 10 }}>
               <Text style={styles.h3}>Come allenarlo</Text>
-              <Bullets items={s.theme.actionTips} color={COLORS.brand} />
+              <Bullets items={s.theme.actionTips} color={brand} />
             </View>
 
             <Text style={{ marginTop: 8, fontSize: 9, color: COLORS.ink500 }}>

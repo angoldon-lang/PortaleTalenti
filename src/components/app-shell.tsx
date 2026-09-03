@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { signOutAction } from '@/server/auth-actions';
 import { initials } from '@/lib/utils';
+import { BrandMark } from '@/components/brand-mark';
 
 type NavItem = { href: string; label: string };
 
-export function AppShell({
+export async function AppShell({
   user,
   children,
   nav,
@@ -26,9 +27,7 @@ export function AppShell({
       <header className="sticky top-0 z-40 border-b border-ink-200/70 bg-white/85 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="text-base font-semibold tracking-tight">
-              Portale<span className="text-brand-600">Talenti</span>
-            </Link>
+            <BrandMark href="/dashboard" />
             <nav aria-label="Navigazione principale" className="hidden gap-1 sm:flex">
               {items.map((item) => (
                 <Link

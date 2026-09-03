@@ -18,18 +18,22 @@ const config: Config = {
           900: '#323946',
           950: '#21262e',
         },
+        // La palette del marchio arriva da variabili CSS, così l'amministratore
+        // può cambiare il colore principale a runtime (src/lib/branding.ts).
+        // La forma `rgb(var(--x) / <alpha-value>)` mantiene funzionanti le
+        // utility di opacità, es. bg-brand-600/20.
         brand: {
-          50: '#eef6ff',
-          100: '#d9ebff',
-          200: '#bcdcff',
-          300: '#8ec6ff',
-          400: '#59a5ff',
-          500: '#3382fc',
-          600: '#1d63f1',
-          700: '#164ede',
-          800: '#1840b4',
-          900: '#1a3b8e',
-          950: '#152556',
+          50: 'rgb(var(--brand-50) / <alpha-value>)',
+          100: 'rgb(var(--brand-100) / <alpha-value>)',
+          200: 'rgb(var(--brand-200) / <alpha-value>)',
+          300: 'rgb(var(--brand-300) / <alpha-value>)',
+          400: 'rgb(var(--brand-400) / <alpha-value>)',
+          500: 'rgb(var(--brand-500) / <alpha-value>)',
+          600: 'rgb(var(--brand-600) / <alpha-value>)',
+          700: 'rgb(var(--brand-700) / <alpha-value>)',
+          800: 'rgb(var(--brand-800) / <alpha-value>)',
+          900: 'rgb(var(--brand-900) / <alpha-value>)',
+          950: 'rgb(var(--brand-950) / <alpha-value>)',
         },
         // Colori delle 4 macro-aree Gallup
         executing: '#7c3aed',

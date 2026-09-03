@@ -5,6 +5,21 @@
 @layer base {
   :root {
     --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+    /* Palette del marchio: valori di default, sovrascritti a runtime dal
+       colore scelto in /admin/personalizzazione. Canali RGB separati da
+       spazio, come richiede rgb(var(--x) / <alpha-value>). */
+    --brand-50: 240 243 250;
+    --brand-100: 223 230 247;
+    --brand-200: 192 206 244;
+    --brand-300: 141 168 239;
+    --brand-400: 84 126 235;
+    --brand-500: 40 94 234;
+    --brand-600: 22 78 222;
+    --brand-700: 21 70 196;
+    --brand-800: 21 62 165;
+    --brand-900: 22 55 138;
+    --brand-950: 19 39 90;
   }
 
   html {
