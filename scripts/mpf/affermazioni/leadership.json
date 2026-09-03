@@ -1,0 +1,242 @@
+{
+ "ancoraggio-valoriale": [
+  "Guido a partire da principi che non cambio",
+  "Rifiuto obiettivi che vanno contro le mie convinzioni",
+  "Spiego al gruppo il perché prima del cosa",
+  "Non scendo a compromessi su ciò in cui credo",
+  "Dico no a richieste che considero scorrette",
+  "Voglio che il lavoro del gruppo sia fatto nel modo giusto"
+ ],
+ "orientamento-allo-scopo": [
+  "Ricordo al gruppo a che cosa serve quello che facciamo",
+  "Scelgo per il team progetti che lascino qualcosa",
+  "Motivo le persone con il senso più che con il premio",
+  "Metto in discussione le iniziative che hanno perso ragione",
+  "Collego ogni obiettivo a un fine più ampio",
+  "Faccio fatica a guidare qualcosa in cui non credo"
+ ],
+ "focalizzazione-selettiva": [
+  "Do al gruppo una direzione e non la cambio",
+  "Riporto al punto le riunioni che divagano",
+  "Elimino le attività che non portano all'obiettivo",
+  "Proteggo il team dalle richieste fuori perimetro",
+  "Ripeto la stessa priorità finché non è chiara a tutti",
+  "Mi infastidisce quando il gruppo si disperde"
+ ],
+ "proiezione-prospettica": [
+  "Descrivo al team dove saremo fra qualche anno",
+  "Il futuro mi dà più energia della gestione quotidiana",
+  "La mia visione riesce a far muovere le persone",
+  "Anticipo al gruppo i cambiamenti che vedo arrivare",
+  "Mi entusiasma progettare ciò che non esiste ancora",
+  "Faccio fatica a occuparmi solo dell'operatività"
+ ],
+ "ambizione-visibile": [
+  "Scelgo per il team i progetti che si vedono",
+  "Voglio che il lavoro del gruppo lasci un segno",
+  "Cerco visibilità per ciò che la mia squadra realizza",
+  "Punto a traguardi importanti più che a piccoli passi",
+  "Mi motiva guidare qualcosa di cui si parlerà",
+  "Il lavoro invisibile mi dà meno energia"
+ ],
+ "autonomia-decisionale": [
+  "Prendo decisioni difficili senza cercare conferme",
+  "Resto lucido quando il gruppo si agita",
+  "Sostengo una scelta impopolare se ne sono convinto",
+  "Non ho bisogno del consenso per procedere",
+  "Le critiche non mi fanno cambiare rotta",
+  "Mi assumo scelte che altri non prenderebbero"
+ ],
+ "autoefficacia-realizzativa": [
+  "Do il ritmo al gruppo con quanto produco io",
+  "Mi aspetto dai miei la stessa intensità che metto io",
+  "Chiudo la settimana contando i risultati del team",
+  "Guido facendo, più che spiegando",
+  "Faccio fatica a fermare il gruppo per riflettere",
+  "Misuro l'andamento del team dalle consegne completate"
+ ],
+ "iniziativa-proattiva": [
+  "Faccio partire il gruppo anche senza tutte le informazioni",
+  "Sono io a rompere lo stallo quando nessuno si muove",
+  "Preferisco far provare al team che farlo studiare",
+  "Metto pressione perché si cominci",
+  "Lancio iniziative e le affido strada facendo",
+  "Fisso la data di partenza prima di avere tutte le risposte"
+ ],
+ "persistenza-operativa": [
+  "Non lascio che il gruppo abbandoni ciò che ha iniziato",
+  "Continuo a spingere anche quando i risultati tardano",
+  "Recupero progetti che altri avrebbero chiuso",
+  "Faccio fatica a cancellare un'iniziativa avviata",
+  "Tengo la rotta anche quando il team si scoraggia",
+  "Considero un fallimento personale lasciare le cose a metà"
+ ],
+ "responsabilita-assunta": [
+  "Quello che prometto al mio team accade",
+  "Mi assumo io la responsabilità quando il gruppo sbaglia",
+  "Non delego ciò di cui rispondo personalmente",
+  "Sento come miei gli impegni presi dalla squadra",
+  "Preferisco lavorare io di più che deludere qualcuno",
+  "Se il team manca una scadenza ne rispondo io per primo"
+ ],
+ "spinta-competitiva": [
+  "Confronto i risultati del mio team con quelli degli altri",
+  "Voglio che la mia squadra sia la migliore",
+  "Uso riferimenti esterni per motivare il gruppo",
+  "Vivo male quando un altro gruppo fa meglio del mio",
+  "Alzo l'asticella finché non superiamo il riferimento",
+  "Mostro al team dove siamo rispetto agli altri"
+ ],
+ "ottimizzazione-qualitativa": [
+  "Spingo i miei a lavorare sui loro punti di forza",
+  "Mi interessa portare il gruppo da buono a eccellente",
+  "Faccio fatica ad accettare un lavoro solo sufficiente",
+  "Investo sulle persone già brave più che sulle lacune",
+  "Chiedo un altro giro quando il risultato è già buono",
+  "Assegno i compiti in base a ciò che ciascuno fa meglio"
+ ],
+ "strutturazione-metodica": [
+  "Do al gruppo scadenze e ruoli definiti in anticipo",
+  "Costruisco processi perché il team non debba ridecidere",
+  "Pianifico il lavoro della squadra nel dettaglio",
+  "Un cambio di programma mi obbliga a rifare l'impianto",
+  "Voglio sapere in anticipo come sarà la settimana del team",
+  "Assegno responsabilità e date a ogni fase"
+ ],
+ "prudenza-valutativa": [
+  "Valuto i rischi prima di impegnare il gruppo",
+  "Preferisco una decisione ponderata a una rapida",
+  "Anticipo gli ostacoli che il team non ha considerato",
+  "Chiedo tempo prima di dare il via a un progetto",
+  "Metto in guardia il gruppo sugli scenari negativi",
+  "Espongo la squadra solo a rischi che ho valutato"
+ ],
+ "analisi-evidenziale": [
+  "Chiedo su quali dati si basa una proposta del team",
+  "Cerco la causa dietro un risultato prima di reagire",
+  "Le decisioni prese d'istinto mi mettono a disagio",
+  "Individuo i punti deboli di un ragionamento in riunione",
+  "Chiedo tempo per verificare prima di approvare",
+  "Verifico le assunzioni dietro una proposta"
+ ],
+ "coordinamento-adattivo": [
+  "Rimescolo ruoli e risorse finché la squadra non rende",
+  "Metto le persone dove rendono di più, anche cambiando spesso",
+  "Gestisco più progetti paralleli senza perdere il quadro",
+  "Riorganizzo il gruppo appena vedo un assetto migliore",
+  "Le riorganizzazioni non mi spaventano",
+  "So sempre chi può coprire chi nel mio gruppo"
+ ],
+ "ricostruzione-diagnostica": [
+  "Divento più lucido quando qualcosa va storto",
+  "Vado a cercare cosa non funziona nel lavoro del gruppo",
+  "Prendo io in mano i progetti in difficoltà",
+  "Noto per primo i difetti nel lavoro consegnato",
+  "Preferisco recuperare una situazione compromessa",
+  "Cerco l'anello debole del processo prima che ceda"
+ ],
+ "equita-procedurale": [
+  "Applico le stesse regole a tutti i collaboratori",
+  "Dichiaro i criteri con cui valuto e assegno",
+  "I trattamenti di favore mi sembrano una crepa nel gruppo",
+  "Preferisco procedure trasparenti alle decisioni caso per caso",
+  "Difendo chi nel gruppo ha meno voce",
+  "Evito eccezioni che non so giustificare pubblicamente"
+ ],
+ "sintonizzazione-empatica": [
+  "Percepisco il malessere di un collaboratore prima che lo dica",
+  "Il clima emotivo del team condiziona molto le mie scelte",
+  "Capisco come sta una persona dal modo in cui saluta",
+  "Rimando le decisioni che faranno soffrire qualcuno",
+  "Scelgo le parole con cura nei colloqui difficili",
+  "Mi accorgo delle tensioni prima che esplodano"
+ ],
+ "regolazione-del-conflitto": [
+  "Cerco il punto d'incontro quando il team è diviso",
+  "Evito di far emergere conflitti che considero sterili",
+  "Preferisco una decisione condivisa a una perfetta",
+  "Faccio da ponte fra collaboratori che non si parlano",
+  "Abbasso il tono quando la discussione si accende",
+  "Voglio che tutti si siano espressi prima di chiudere"
+ ],
+ "innesco-relazionale": [
+  "Costruisco per il gruppo la rete di contatti che serve",
+  "Rappresento volentieri il team all'esterno",
+  "Metto a proprio agio i nuovi arrivati dal primo giorno",
+  "Conosco persone in ogni funzione e le uso per sbloccare",
+  "Attacco discorso facilmente con interlocutori nuovi",
+  "Faccio conoscere i miei collaboratori alle persone giuste"
+ ],
+ "comunicazione-persuasiva": [
+  "Traduco la strategia in qualcosa che il team ricorda",
+  "Uso storie ed esempi per far arrivare la direzione",
+  "Prendo la parola per chiarire il punto in riunione",
+  "Curo molto come dico le cose al gruppo",
+  "Presentare davanti alla squadra mi dà energia",
+  "Verifico che il messaggio sia arrivato, non solo detto"
+ ],
+ "assertivita-direttiva": [
+  "Dico al gruppo le cose come stanno anche quando è scomodo",
+  "Prendo il controllo quando la situazione è confusa",
+  "Non evito le conversazioni difficili con i collaboratori",
+  "Metto sul tavolo ciò che nessuno osa dire",
+  "La mia presenza si sente quando entro in una riunione",
+  "Chiudo io le discussioni che si trascinano"
+ ],
+ "facilitazione-della-crescita": [
+  "Vedo nei collaboratori un potenziale che loro non vedono",
+  "I progressi di chi guido mi danno più soddisfazione dei miei",
+  "Costruisco percorsi di crescita su misura",
+  "Ho pazienza con chi impara lentamente",
+  "Delego compiti difficili per far crescere le persone",
+  "Considero un successo quando qualcuno non ha più bisogno di me"
+ ],
+ "curiosita-esplorativa": [
+  "Porto nel gruppo metodi e strumenti nuovi",
+  "Il cambiamento mi incuriosisce più di quanto mi preoccupi",
+  "Scelgo volentieri progetti mai affrontati prima",
+  "Insegno alla squadra quello che ho appena imparato",
+  "Studio per primo ciò che il gruppo dovrà affrontare",
+  "Accetto progetti in cui nessuno di noi è esperto"
+ ],
+ "generazione-ideativa": [
+  "Riformulo il problema quando la squadra si blocca",
+  "Propongo al gruppo strade che nessuno ha considerato",
+  "Mi entusiasmano le idee nuove più della loro esecuzione",
+  "Cambio direzione quando intravedo un'opzione migliore",
+  "Collego cose che sembrano non c'entrare nulla",
+  "Mi annoio quando si ripete sempre lo stesso schema"
+ ],
+ "flessibilita-adattiva": [
+  "Resto efficace quando i piani della squadra saltano",
+  "Riorganizzo il lavoro del gruppo in giornata se serve",
+  "Le emergenze non mi mettono in difficoltà",
+  "Accolgo le richieste dell'ultimo minuto senza irrigidirmi",
+  "Preferisco rispondere alla situazione che seguire il piano",
+  "La mia calma nel caos tranquillizza il team"
+ ],
+ "integrazione-sistemica": [
+  "Spiego al gruppo come il suo lavoro si inserisce nel quadro",
+  "Considero le conseguenze oltre il mio perimetro",
+  "Faccio da ponte fra funzioni che si ignorano",
+  "Racconto al gruppo come siamo arrivati fin qui",
+  "Prima di cambiare un processo voglio sapere a cosa serviva",
+  "Riconosco quando il gruppo ripete un vecchio errore"
+ ],
+ "elaborazione-riflessiva": [
+  "Ho bisogno di tempo per pensare prima di rispondere al gruppo",
+  "Preferisco elaborare da solo prima di discutere",
+  "Pongo domande che spostano il livello della discussione",
+  "Le riunioni troppo rapide non mi lasciano contribuire",
+  "Rimugino a lungo sulle decisioni complesse",
+  "Il mio silenzio in riunione è lavoro, non disinteresse"
+ ],
+ "positivita-motivazionale": [
+  "Porto energia al gruppo anche nelle settimane difficili",
+  "Celebro i progressi della squadra a voce alta",
+  "Il mio umore condiziona il clima del team",
+  "Trovo il lato buono anche dopo un insuccesso",
+  "Preferisco incoraggiare che correggere",
+  "Rendo sostenibili i periodi di carico elevato"
+ ]
+}
