@@ -1,10 +1,20 @@
 # Portale Talenti
 
 Portale web per l'assessment dei punti di forza, ispirato al modello delle quattro
-macro-aree di Gallup CliftonStrengths®. L'utente compila un questionario
-psicometrico a confronto di affermazioni e riceve un report con i suoi cinque
-talenti dominanti, il bilanciamento fra le macro-aree e le schede di dettaglio,
-esportabile in PDF.
+macro-aree di Gallup CliftonStrengths®. L'utente sceglie fra **quattro
+questionari distinti**, li compila e riceve un report con i talenti dominanti, il
+bilanciamento fra le macro-aree e le schede di dettaglio, esportabile in PDF.
+
+| Questionario | Temi | Item | Durata | Report |
+| --- | --- | --- | --- | --- |
+| Talenti Essenziale | 12 | 66 | ~22 min | Top 5 |
+| CliftonStrengths 34 | 34 | 136 | ~45 min | Top 10 + classifica 1-34 |
+| CliftonStrengths for Leaders | 34 | 102 | ~34 min | Top 7, lente leadership |
+| CliftonStrengths for Managers | 34 | 102 | ~34 min | Top 7, lente gestione team |
+
+Ogni questionario ha la **propria banca di item**: le affermazioni di *for
+Leaders* parlano di direzione e decisioni difficili, quelle di *for Managers* di
+deleghe, feedback e carichi di lavoro. Non è lo stesso test con etichette diverse.
 
 > Progetto dimostrativo, senza alcuna affiliazione con Gallup, Inc. Temi e item
 > sono contenuti originali costruiti sul modello concettuale, non una riproduzione
@@ -46,9 +56,10 @@ Browser
   │     src/server/*-actions.ts        (validazione Zod + guardie di ruolo)
   │
   ├─ Route Handler /api/report/[id]/pdf ─► @react-pdf/renderer → application/pdf
+  │     /api/admin/export ────────────────► CSV dei risultati (solo ADMIN)
   │
-  └─ Middleware (Edge) ──────────► gate su /dashboard, /questionario, /admin
-        src/middleware.ts               (nessun accesso al DB: solo il JWT)
+  └─ Middleware (Edge) ──────────► gate su /dashboard, /questionario, /report,
+        src/middleware.ts               /admin (nessun accesso al DB: solo il JWT)
 ```
 
 Struttura delle cartelle:
@@ -61,8 +72,9 @@ src/
   app/                  pagine (App Router) e route handler
   components/           UI: primitive, questionario, report
   content/
-    themes.ts           i 12 temi di talento (contenuto redazionale)
-    questions.ts        i 66 item — GENERATO da scripts/gen_questions.py
+    themes.ts           i 34 temi di talento (contenuto redazionale)
+    assessments.ts      i quattro questionari e le lenti di report
+    questions.ts        le 4 banche di item — GENERATO da gen_questions.py
   lib/
     scoring.ts          il motore di calcolo (puro, testabile, senza I/O)
     pdf-report.tsx      il documento PDF
@@ -71,7 +83,8 @@ src/
   auth.ts               Auth.js: provider, adapter, callback
   auth.config.ts        configurazione Edge-safe usata dal middleware
 scripts/
-  gen_questions.py      genera il banco di item bilanciato
+  statements/*.json     le affermazioni, per banca (dati versionati)
+  gen_questions.py      assembla le affermazioni in item bilanciati
   simulate.ts           valida l'algoritmo su un profilo noto
   e2e.mjs               smoke test end-to-end con Playwright
 ```
@@ -175,6 +188,7 @@ completa l'accesso: l'app funziona comunque con email e password.
 | `npm run db:seed` | popola temi, item e utenti demo |
 | `npm run db:studio` | Prisma Studio |
 | `npx tsx scripts/simulate.ts` | valida l'algoritmo su un profilo noto |
+| `python3 scripts/gen_questions.py` | rigenera le quattro banche di item |
 | `node scripts/e2e.mjs` | smoke test end-to-end (richiede il server avviato) |
 
 ---
@@ -231,11 +245,24 @@ npx prisma migrate reset     # cancella i dati, riapplica lo schema, riesegue il
 
 ---
 
-## Nota etica
+## Nota etica e visibilità dei dati
 
 Lo strumento è pensato per l'autoconsapevolezza e lo sviluppo professionale.
 Non è un test clinico e non è validato per l'uso in selezione o valutazione del
 personale: i punteggi sono ipsativi, cioè confrontano i temi *all'interno* della
-stessa persona e non fra persone diverse. Il report è visibile solo al suo
-proprietario; l'Admin vede metriche aggregate e stato delle compilazioni, non i
-report altrui.
+stessa persona e non fra persone diverse.
+
+**Chi vede cosa.** Un utente standard vede solo i propri report: chiedere il PDF
+di un altro utente restituisce 404, non un 403 che ne confermerebbe l'esistenza.
+Un **amministratore può scaricare il report di chiunque** e può esportare tutti i
+risultati in CSV.
+
+Poiché un report descrive preferenze e stile di lavoro di una persona reale, ogni
+azione amministrativa su dati personali — download di un report, export CSV,
+creazione di un utente, cambio di ruolo — viene scritta in `admin_audit_logs` con
+autore, interessato e momento, ed è consultabile in `/admin/report`. Il registro
+serve a poter rispondere, se qualcuno lo chiede, alla domanda «chi ha visto il mio
+profilo?».
+
+Se distribuisci il portale in un'organizzazione, dichiara questa visibilità
+nell'informativa privacy prima di somministrare il primo questionario.

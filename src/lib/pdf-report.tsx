@@ -9,6 +9,7 @@ import {
 } from '@react-pdf/renderer';
 
 import { DOMAIN_META, DOMAIN_ORDER } from '@/content/themes';
+import { LENS_META } from '@/content/assessments';
 import type { FullReport } from '@/server/test-service';
 
 const COLORS = {
@@ -121,6 +122,13 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: COLORS.ink300,
   },
+  lensBox: {
+    marginTop: 2,
+    marginBottom: 8,
+    padding: 9,
+    backgroundColor: '#eef6ff',
+    borderRadius: 5,
+  },
   disclaimer: {
     marginTop: 16,
     padding: 12,
@@ -201,7 +209,9 @@ export function ReportDocument({ report }: { report: FullReport }) {
     value: domainValues[d]!,
   }));
 
-  const topFive = report.themeScores.slice(0, 5);
+  const topCount = report.assessment.topCount;
+  const topThemes = report.themeScores.slice(0, topCount);
+  const lens = report.assessment.lens;
   const generatedOn = new Intl.DateTimeFormat('it-IT', {
     day: '2-digit',
     month: 'long',
@@ -212,7 +222,7 @@ export function ReportDocument({ report }: { report: FullReport }) {
 
   return (
     <Document
-      title={`Report Talenti — ${owner}`}
+      title={`${report.assessment.name} — ${owner}`}
       author="Portale Talenti"
       subject="Report dei talenti dominanti"
       language="it"
@@ -227,11 +237,12 @@ export function ReportDocument({ report }: { report: FullReport }) {
           {owner} · {generatedOn}
         </Text>
         <View style={styles.coverBar} />
-        <Text style={styles.eyebrow}>Report dei talenti</Text>
+        <Text style={styles.eyebrow}>{report.assessment.name}</Text>
         <Text style={styles.h1}>{owner}</Text>
         <Text style={styles.meta}>
-          Compilato il {generatedOn} · {report.testSession.totalQuestions} item · risposte date
-          entro il tempo: {Math.round((1 - report.timeoutRatio) * 100)}%
+          Compilato il {generatedOn} · {report.testSession.totalQuestions} item ·{' '}
+          {report.themeScores.length} temi · risposte entro il tempo:{' '}
+          {Math.round((1 - report.timeoutRatio) * 100)}% · {LENS_META[lens].label}
         </Text>
 
         <Text style={styles.h2}>Il tuo bilanciamento</Text>
@@ -255,8 +266,8 @@ export function ReportDocument({ report }: { report: FullReport }) {
           </View>
         </View>
 
-        <Text style={styles.h2}>I tuoi 5 talenti dominanti</Text>
-        {topFive.map((s) => (
+        <Text style={styles.h2}>I tuoi {topCount} talenti dominanti</Text>
+        {topThemes.map((s) => (
           <View key={s.id} style={styles.rankRow}>
             <Text style={styles.rankIndex}>{s.rank}.</Text>
             <Text style={styles.rankName}>{s.theme.name}</Text>
@@ -270,7 +281,7 @@ export function ReportDocument({ report }: { report: FullReport }) {
         ))}
 
         <Text style={styles.h2}>Classifica completa</Text>
-        {report.themeScores.slice(5).map((s) => (
+        {report.themeScores.slice(topCount).map((s) => (
           <View key={s.id} style={styles.rankRow}>
             <Text style={styles.rankIndex}>{s.rank}.</Text>
             <Text style={styles.rankName}>{s.theme.name}</Text>
@@ -304,9 +315,9 @@ export function ReportDocument({ report }: { report: FullReport }) {
           {owner} · {generatedOn}
         </Text>
         <Text style={styles.eyebrow}>Schede di dettaglio</Text>
-        <Text style={[styles.h1, { fontSize: 20 }]}>I tuoi talenti, uno per uno</Text>
+        <Text style={[styles.h1, { fontSize: 20 }]}>{LENS_META[lens].detailHeading}</Text>
 
-        {topFive.map((s) => (
+        {topThemes.map((s) => (
           <View key={s.id} style={styles.talent} wrap={false}>
             <View style={styles.talentHeader}>
               <View
@@ -329,6 +340,19 @@ export function ReportDocument({ report }: { report: FullReport }) {
                 {p}
               </Text>
             ))}
+
+            {lens === 'LEADERS' && s.theme.leaderApplication ? (
+              <View style={styles.lensBox}>
+                <Text style={styles.h3}>Quando guidi</Text>
+                <Text style={{ fontSize: 9.5 }}>{s.theme.leaderApplication}</Text>
+              </View>
+            ) : null}
+            {lens === 'MANAGERS' && s.theme.managerApplication ? (
+              <View style={styles.lensBox}>
+                <Text style={styles.h3}>Nella gestione del team</Text>
+                <Text style={{ fontSize: 9.5 }}>{s.theme.managerApplication}</Text>
+              </View>
+            ) : null}
 
             <View style={styles.columns}>
               <View style={styles.column}>

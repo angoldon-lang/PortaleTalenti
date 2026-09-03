@@ -17,34 +17,38 @@ copre tutte.
 | Relazioni | `RELATIONSHIP` | Tenere insieme le persone, rendere il gruppo più della somma delle parti |
 | Pensiero Strategico | `STRATEGIC` | Assorbire e analizzare informazioni per decidere meglio |
 
-## 2. I dodici temi di talento
+## 2. I trentaquattro temi di talento
 
-Tre temi per macro-area. La definizione completa (descrizione, punti di forza,
-punti ciechi, azioni di allenamento, contesti) sta in `src/content/themes.ts` ed
-è quella che alimenta sia la dashboard sia il PDF.
+La distribuzione fra le aree segue quella del modello Gallup: 9 temi in
+Esecuzione, 8 in Influenza, 9 in Relazioni, 8 in Pensiero Strategico. La
+definizione completa (descrizione, punti di forza, punti ciechi, azioni di
+allenamento, contesti, più le due sezioni per le lenti Leaders e Managers) sta in
+`src/content/themes.ts` ed è quella che alimenta sia la dashboard sia il PDF.
 
-| Macro-area | Tema | In una riga |
-| --- | --- | --- |
-| Esecuzione | **Realizzatore** | Un motore interno che chiede risultati concreti ogni giorno |
-| Esecuzione | **Organizzazione** | Porta ordine dove gli altri vedono complessità |
-| Esecuzione | **Responsabilità** | Gli impegni presi sono vincoli morali |
-| Influenza | **Comunicazione** | Rende vive le idee: le spiega, le racconta, le fa ricordare |
-| Influenza | **Attivatore** | Trasforma la discussione in azione: si impara facendo |
-| Influenza | **Fiducia in Sé** | Ha una bussola interna e la segue anche controcorrente |
-| Relazioni | **Empatia** | Percepisce le emozioni degli altri prima che vengano dette |
-| Relazioni | **Armonia** | Cerca il terreno comune: il conflitto sterile è uno spreco |
-| Relazioni | **Sviluppatore** | Vede il potenziale delle persone e non riesce a ignorarlo |
-| Pensiero Strategico | **Analitico** | Chiede le prove: senza dati resta un'opinione |
-| Pensiero Strategico | **Ideazione** | Collega cose lontane e ne esce qualcosa di nuovo |
-| Pensiero Strategico | **Apprendimento** | Il processo di imparare dà energia quanto il risultato |
+I nomi sono in italiano e originali: il portale è ispirato al modello Gallup, non
+è una traduzione autorizzata della sua nomenclatura.
 
-Ogni tema è descritto su quattro assi, perché un talento senza il suo lato ombra
-non è utilizzabile:
+| Macro-area | Temi |
+| --- | --- |
+| Esecuzione (9) | Realizzatore · Organizzazione · Responsabilità · Coordinatore · Valori · Equità · Prudenza · Focalizzazione · Risolutore |
+| Influenza (8) | Comunicazione · Attivatore · Fiducia in Sé · Assertività · Competizione · Massimizzatore · Riconoscimento · Socievolezza |
+| Relazioni (9) | Empatia · Armonia · Sviluppatore · Adattabilità · Connessione · Inclusione · Individualizzazione · Positività · Relazione |
+| Pensiero Strategico (8) | Analitico · Ideazione · Apprendimento · Contesto · Visione Futura · Raccolta · Riflessione · Strategia |
+
+I dodici temi usati dal questionario breve (Talenti Essenziale) sono i primi tre
+di ciascuna area: Realizzatore, Organizzazione, Responsabilità, Comunicazione,
+Attivatore, Fiducia in Sé, Empatia, Armonia, Sviluppatore, Analitico, Ideazione,
+Apprendimento.
+
+Ogni tema è descritto su sei assi, perché un talento senza il suo lato ombra non
+è utilizzabile:
 
 - **Quando lavora al meglio** — i comportamenti produttivi del tema;
 - **Punti ciechi** — cosa succede quando il tema è sovra-utilizzato;
 - **Come allenarlo** — azioni concrete, non esortazioni;
-- **Contesti in cui rende di più** — dove il tema ha più leva.
+- **Contesti in cui rende di più** — dove il tema ha più leva;
+- **Quando guidi** — come il tema si esprime nel ruolo di chi guida (lente *for Leaders*);
+- **Nella gestione del team** — come far rendere al meglio chi ha quel tema (lente *for Managers*).
 
 ---
 
@@ -69,11 +73,25 @@ d'accordo* con un'affermazione isolata produce risposte socialmente desiderabili
 (quasi tutti dicono di essere responsabili). Chiedere *quale delle due mi
 descrive di più* costringe a un compromesso e fa emergere le preferenze reali.
 
-### 3.2 Il design del banco item
+### 3.2 I quattro questionari
 
-Il banco segue un **confronto a coppie completo**: con 12 temi esistono
-C(12,2) = **66 coppie**, e ogni coppia viene presentata esattamente una volta.
-Ne segue che:
+| Questionario | Temi | Item | Comparse per tema | Costruzione |
+| --- | --- | --- | --- | --- |
+| Talenti Essenziale | 12 | 66 | 11 | round-robin completo |
+| CliftonStrengths 34 | 34 | 136 | 8 | design circolante, scarti {1, 6, 11, 16} |
+| for Leaders | 34 | 102 | 6 | design circolante, scarti {2, 7, 12} |
+| for Managers | 34 | 102 | 6 | design circolante, scarti {3, 8, 13} |
+
+Gli scarti sono diversi per ciascuna banca: i tre questionari a 34 temi
+confrontano **coppie di temi diverse**, quindi non sono lo stesso strumento
+riformulato. Le affermazioni sono anch'esse specifiche del contesto: quelle di
+*for Leaders* descrivono comportamenti di chi guida, quelle di *for Managers*
+comportamenti di chi gestisce collaboratori.
+
+### 3.3 Il design del banco item
+
+**Round-robin completo (12 temi).** Con 12 temi esistono C(12,2) = **66 coppie**,
+e ogni coppia viene presentata esattamente una volta. Ne segue che:
 
 - ogni tema compare in **11 item**, quindi tutti i temi hanno la stessa
   possibilità di accumulare punteggio (nessun tema è avvantaggiato dal numero di
@@ -83,19 +101,54 @@ Ne segue che:
 - ogni tema usa **11 affermazioni diverse**, una per item: nessuna ripetizione
   letterale che inviterebbe a rispondere "come prima".
 
-Il banco è generato da `scripts/gen_questions.py`, che oltre alle coppie
-controlla due fonti di distorsione:
+**Design circolante (34 temi).** Il round-robin completo su 34 temi richiederebbe
+C(34,2) = 561 item, impraticabile. Si dispongono allora i temi in cerchio e si
+generano le coppie *(i, i+d)* per ogni tema *i* e per ogni scarto *d* di un
+insieme scelto. Ogni scarto produce 34 coppie e fa comparire ogni tema
+esattamente due volte, quindi *k* scarti danno 34*k* item con 2*k* comparse per
+tema. Il risultato ha la stessa proprietà che conta del round-robin — **nessun
+tema ha più occasioni di altri** — a un costo lineare invece che quadratico.
+
+L'ordine dei temi nel cerchio alterna le macro-aree, così gli scarti producono in
+prevalenza confronti fra aree diverse (74-82% degli item, a seconda della banca).
+
+**Vincolo sulla scelta degli scarti.** I temi sono disposti nel cerchio
+alternando le quattro macro-aree, quindi lo scarto *d* modulo 4 determina *quale
+coppia di aree* viene confrontata. Servono perciò quattro scarti con residui mod
+4 tutti diversi, altrimenti alcune coppie di aree restano sotto-campionate.
+
+Non è teoria. La prima versione di *for Leaders* usava gli scarti {2, 7, 12, 15},
+con residui {2, 3, 0, 3} — un duplicato e un residuo mancante. La simulazione
+mostrava un recupero della Top 7 di 5,3 su 7 contro il 6,5 di *for Managers*, a
+parità di item e di algoritmo. Passando a {2, 7, 9, 12} (residui {2, 3, 1, 0}) il
+recupero è salito a 6,7 su 7. Gli scarti attuali:
+
+| Banca | Scarti | Residui mod 4 |
+| --- | --- | --- |
+| CliftonStrengths 34 | {1, 6, 11, 16} | {1, 2, 3, 0} |
+| for Leaders | {2, 7, 9, 12} | {2, 3, 1, 0} |
+| for Managers | {3, 8, 13, 14} | {3, 0, 1, 2} |
+
+Le affermazioni vivono in `scripts/statements/*.json` — dati versionati e
+rivedibili in code review — e `scripts/gen_questions.py` le assembla
+controllando due fonti di distorsione:
 
 - **ordine**: gli item sono ordinati in modo che due item consecutivi non
   condividano un tema (1 sola eccezione su 65 adiacenze), così l'utente non
   percepisce di essere interrogato più volte sullo stesso costrutto;
-- **lato**: ogni tema compare 5-7 volte a sinistra, per neutralizzare la
-  tendenza a preferire sistematicamente uno dei due lati (*side bias*).
+- **lato**: dopo una prima assegnazione si esegue un raffinamento che scambia i
+  lati finché lo sbilanciamento non è minimo, così ogni tema compare a sinistra in
+  circa metà dei propri item (deviazione massima ±1) e si neutralizza la tendenza
+  a preferire sistematicamente uno dei due lati (*side bias*).
 
 Il file prodotto (`src/content/questions.ts`) è versionato ed esplicito: si legge
-riga per riga in code review, e il seed lo carica nel database.
+riga per riga in code review, e il seed lo carica nel database. Rigenerarlo:
 
-### 3.3 Il timer
+```bash
+python3 scripts/gen_questions.py && npm run db:seed
+```
+
+### 3.4 Il timer
 
 Venti secondi per item (configurabili con `NEXT_PUBLIC_QUESTION_TIMER_SECONDS`,
 `0` disattiva il timer). Il razionale è psicometrico, non ludico: il tempo breve
@@ -138,8 +191,8 @@ l'altro.
 
 ### 4.2 Punteggio grezzo
 
-Per ciascun tema, media ponderata delle preferenze ricevute nei suoi 11 item,
-riportata su scala 0-100:
+Per ciascun tema, media ponderata delle preferenze ricevute nei suoi item (11, 8
+o 6 a seconda del questionario), riportata su scala 0-100:
 
 ```
 rawScore(tema) = 100 × Σ(preferenza × peso) / Σ(peso)
@@ -151,8 +204,8 @@ serve a tarare item che discriminano meno bene, senza cambiare il codice.
 ### 4.3 Normalizzazione intra-individuo
 
 I punteggi grezzi non sono confrontabili fra persone (chi risponde sempre verso
-gli estremi ottiene valori più dispersi). Si calcola quindi uno z-score sui 12
-temi **della stessa persona**, riscalato su media 50 e deviazione standard 15:
+gli estremi ottiene valori più dispersi). Si calcola quindi uno z-score sui temi
+misurati **della stessa persona**, riscalato su media 50 e deviazione standard 15:
 
 ```
 normalizedScore(tema) = 50 + 15 × (raw − mediaPersona) / sdPersona
@@ -187,20 +240,40 @@ distrattamente.
 
 ## 5. Verifica dell'algoritmo
 
-`scripts/simulate.ts` definisce un profilo "vero" (intensità nota per ciascun
-tema), genera 66 risposte coerenti con quel profilo aggiungendo rumore e un 5% di
-timeout, e verifica che l'algoritmo lo ricostruisca.
+`scripts/simulate.ts` assegna a ogni tema un'intensità "vera" nota, genera
+risposte coerenti con quel profilo (con rumore e un 5% di timeout) e verifica che
+l'algoritmo ricostruisca la classifica. Gira su **tutti e quattro i questionari**
+e su **tre profili diversi**, perché misurano cose diverse:
+
+| Profilo simulato | Cosa rappresenta | Criterio |
+| --- | --- | --- |
+| Talenti nettamente dominanti | la fascia alta è separata dal resto molto più del rumore | Top K recuperata ≥ 85% **e** Spearman ≥ 0.85 |
+| Moderatamente differenziato | il salto fra fascia alta e media è dell'ordine del rumore | solo Spearman ≥ 0.85 |
+| Piatto (temi equispaziati) | nessun talento dominante | solo Spearman ≥ 0.80 |
+
+Le risposte sono stocastiche, quindi un singolo run non è una misura: ogni
+combinazione questionario × profilo viene replicata 20 volte (`SIM_REPLICATIONS`)
+e il criterio si applica alla media.
 
 ```bash
-npx tsx scripts/simulate.ts
+npx tsx scripts/simulate.ts            # tutti i questionari
+npx tsx scripts/simulate.ts full34     # uno solo
 ```
 
-Il test fallisce (exit code 1) se meno di 4 dei 5 temi realmente più forti
-finiscono nella Top 5 o se la correlazione di rango di Spearman con il profilo
-vero scende sotto 0.80. Sulle esecuzioni di riferimento il recupero della Top 5 è
-5/5 e Spearman si attesta fra 0.97 e 0.99.
+Valori di riferimento (20 repliche):
 
----
+| Questionario | Top K con talenti dominanti | Spearman medio |
+| --- | --- | --- |
+| Talenti Essenziale | 5,0 / 5 | 0.92 – 0.98 |
+| CliftonStrengths 34 | 9,4 / 10 | 0.91 – 0.93 |
+| for Leaders | 6,7 / 7 | 0.92 – 0.93 |
+| for Managers | 6,9 / 7 | 0.88 – 0.93 |
+
+**La lettura importante combina la seconda e la terza colonna.** Con un profilo
+piatto la Top K *non* viene recuperata (4,0 su 7 per *for Leaders*), e non è un
+difetto: se una persona non ha talenti realmente dominanti, dire «il tuo settimo
+talento è X» sarebbe arbitrario. La qualità dell'ordinamento complessivo resta
+alta in tutti i casi.
 
 ## 6. Limiti dichiarati
 
@@ -210,5 +283,12 @@ vero scende sotto 0.80. Sulle esecuzioni di riferimento il recupero della Top 5 
 - **Nessuna taratura su campione normativo**: non esistono percentili di
   riferimento, perché non c'è un campione di standardizzazione.
 - **Autovalutazione**: misura come la persona si descrive, non come si comporta.
+- **Precisione della Top K**: il confine fra l'ultimo talento dominante e il primo
+  escluso è affidabile solo se il profilo della persona è realmente differenziato.
+  Le posizioni adiacenti in classifica vanno lette come equivalenti, non come una
+  graduatoria stretta.
+- **Non confrontabilità fra questionari**: i quattro strumenti hanno item diversi.
+  La Top 5 di *Talenti Essenziale* e quella di *CliftonStrengths 34* possono
+  differire legittimamente, anche perché il primo misura 12 temi e il secondo 34.
 - **Uso previsto**: autoconsapevolezza e sviluppo. Non è uno strumento clinico né
   validato per la selezione del personale.

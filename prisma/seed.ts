@@ -4,7 +4,8 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 import { THEMES } from '../src/content/themes';
-import { QUESTIONS } from '../src/content/questions';
+import { QUESTION_BANKS } from '../src/content/questions';
+import { ASSESSMENTS } from '../src/content/assessments';
 
 // `tsx prisma/seed.ts` non carica .env da solo (a differenza della CLI Prisma).
 try {
@@ -26,34 +27,49 @@ async function seedThemes() {
   console.log(`✓ ${THEMES.length} temi di talento`);
 }
 
-async function seedQuestions() {
+async function seedAssessmentsAndQuestions() {
   const themes = await prisma.talentTheme.findMany({ select: { id: true, slug: true } });
   const idBySlug = new Map(themes.map((t) => [t.slug, t.id]));
 
-  for (const q of QUESTIONS) {
-    const leftThemeId = idBySlug.get(q.leftTheme);
-    const rightThemeId = idBySlug.get(q.rightTheme);
-    if (!leftThemeId || !rightThemeId) {
-      throw new Error(`Item ${q.position}: tema non trovato (${q.leftTheme} / ${q.rightTheme})`);
+  for (const seed of ASSESSMENTS) {
+    const bank = QUESTION_BANKS[seed.slug];
+    if (!bank) throw new Error(`Banca di item mancante per l'assessment "${seed.slug}"`);
+
+    const assessment = await prisma.assessment.upsert({
+      where: { slug: seed.slug },
+      update: { ...seed },
+      create: { ...seed },
+      select: { id: true },
+    });
+
+    for (const q of bank) {
+      const leftThemeId = idBySlug.get(q.leftTheme);
+      const rightThemeId = idBySlug.get(q.rightTheme);
+      if (!leftThemeId || !rightThemeId) {
+        throw new Error(
+          `${seed.slug} item ${q.position}: tema non trovato (${q.leftTheme} / ${q.rightTheme})`,
+        );
+      }
+
+      const data = {
+        leftStatement: q.leftStatement,
+        rightStatement: q.rightStatement,
+        leftThemeId,
+        rightThemeId,
+        leftWeight: q.leftWeight ?? 1,
+        rightWeight: q.rightWeight ?? 1,
+        isActive: true,
+      };
+
+      await prisma.question.upsert({
+        where: { assessmentId_position: { assessmentId: assessment.id, position: q.position } },
+        update: data,
+        create: { assessmentId: assessment.id, position: q.position, ...data },
+      });
     }
 
-    const data = {
-      leftStatement: q.leftStatement,
-      rightStatement: q.rightStatement,
-      leftThemeId,
-      rightThemeId,
-      leftWeight: q.leftWeight ?? 1,
-      rightWeight: q.rightWeight ?? 1,
-      isActive: true,
-    };
-
-    await prisma.question.upsert({
-      where: { position: q.position },
-      update: data,
-      create: { position: q.position, ...data },
-    });
+    console.log(`✓ ${seed.name}: ${bank.length} item`);
   }
-  console.log(`✓ ${QUESTIONS.length} item del questionario`);
 }
 
 async function seedUsers() {
@@ -95,7 +111,7 @@ async function seedUsers() {
 async function main() {
   console.log('Seed del Portale Talenti…');
   await seedThemes();
-  await seedQuestions();
+  await seedAssessmentsAndQuestions();
   await seedUsers();
   console.log('Fatto.');
 }

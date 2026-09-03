@@ -26,6 +26,40 @@ export default async function AdminMetricsPage() {
         />
       </section>
 
+      <section className="mt-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Compilazioni per questionario</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="-mx-5 overflow-x-auto sm:-mx-6">
+              <table className="w-full min-w-[560px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-ink-200 text-xs uppercase tracking-wide text-ink-500">
+                    <th scope="col" className="px-5 py-2 sm:px-6">Questionario</th>
+                    <th scope="col" className="px-3 py-2">Completati</th>
+                    <th scope="col" className="px-3 py-2">In corso</th>
+                    <th scope="col" className="px-3 py-2">Durata media</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-ink-100">
+                  {m.perAssessment.map((a) => (
+                    <tr key={a.slug}>
+                      <td className="px-5 py-2.5 font-medium text-ink-900 sm:px-6">{a.name}</td>
+                      <td className="px-3 py-2.5 tabular-nums text-ink-600">{a.completed}</td>
+                      <td className="px-3 py-2.5 tabular-nums text-ink-600">{a.inProgress}</td>
+                      <td className="whitespace-nowrap px-3 py-2.5 text-ink-600">
+                        {formatDuration(a.avgDurationSeconds)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
       <section className="mt-6 grid gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader>

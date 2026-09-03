@@ -34,6 +34,7 @@ export const authConfig = {
       const isProtected =
         pathname.startsWith('/dashboard') ||
         pathname.startsWith('/questionario') ||
+        pathname.startsWith('/report') ||
         pathname.startsWith('/admin');
 
       if (isAuthPage) {

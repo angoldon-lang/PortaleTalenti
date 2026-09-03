@@ -8,7 +8,9 @@ export const metadata: Metadata = { title: 'Amministrazione' };
 
 const adminNav = [
   { href: '/admin', label: 'Metriche' },
+  { href: '/admin/report', label: 'Report' },
   { href: '/admin/utenti', label: 'Utenti' },
+  { href: '/admin/nuovo-utente', label: 'Nuovo utente' },
   { href: '/admin/domande', label: 'Domande' },
   { href: '/dashboard', label: 'Il mio profilo' },
 ];
@@ -20,7 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <AppShell user={{ ...user, role: 'ADMIN' }} nav={adminNav}>
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
         <nav aria-label="Sezioni amministrazione" className="mb-8 flex flex-wrap gap-2">
-          {adminNav.slice(0, 3).map((item) => (
+          {adminNav.slice(0, 5).map((item) => (
             <Link
               key={item.href}
               href={item.href}

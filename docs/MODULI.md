@@ -47,12 +47,18 @@ accede ai report altrui: `getReportById()` filtra sempre per `userId`.
 
 | File | Ruolo |
 | --- | --- |
-| `src/app/questionario/page.tsx` | schermata introduttiva e avvio/ripresa della sessione |
+| `src/app/questionario/page.tsx` | catalogo dei quattro questionari, con lo stato di avanzamento |
+| `src/app/questionario/[slug]/page.tsx` | schermata introduttiva e avvio/ripresa di un questionario |
 | `src/components/questionnaire/questionnaire-runner.tsx` | il client component che gestisce l'esecuzione |
 | `src/components/questionnaire/likert-scale.tsx` | scala a 7 punti come radiogroup nativo |
 | `src/components/questionnaire/timer-ring.tsx` | anello di countdown |
 | `src/server/test-service.ts` | creazione/ripresa sessione, salvataggio risposta, completamento |
 | `src/server/test-actions.ts` | Server Actions chiamate dal client |
+
+**Quattro questionari.** Il catalogo vive nella tabella `assessments`: ciascuno
+ha la propria banca di item (`questions.assessmentId`), il proprio `topCount` e la
+propria lente di report. Una persona può compilarli tutti: le sessioni e i
+risultati sono per assessment, quindi i profili non si sovrappongono.
 
 **Un item alla volta**, due affermazioni contrapposte e la scala Likert in mezzo.
 La dimensione dei pallini cresce verso gli estremi: la scala si legge a colpo
@@ -85,22 +91,26 @@ completa per gli screen reader.
 Schema completo in `prisma/schema.prisma`.
 
 ```
+assessments ──── questions ──┬── talent_themes (lato sinistro)
+     │                       └── talent_themes (lato destro)
+     │
 users ──┬── accounts / sessions            (Auth.js)
-        ├── test_sessions ──── responses ──── questions ──┬── talent_themes (lato sinistro)
-        │         │                                       └── talent_themes (lato destro)
-        │         └── test_results ──── theme_scores ──────── talent_themes
-        └── test_results
+        ├── test_sessions ──── responses ──── questions
+        │         └── test_results ──── theme_scores ──── talent_themes
+        └── admin_audit_logs (come attore o come interessato)
 ```
 
 | Tabella | Contenuto | Note di modellazione |
 | --- | --- | --- |
 | `users` | account e ruolo | `passwordHash` nullable: gli utenti solo-Google non ne hanno |
-| `talent_themes` | i 12 temi | array PostgreSQL per punti di forza, punti ciechi, azioni, contesti |
-| `questions` | i 66 item | due FK verso i temi + i pesi per lato; `isActive` ritira un item senza perdere lo storico |
-| `test_sessions` | una compilazione | `answeredCount` e `totalQuestions` rendono la ripresa una lettura sola |
+| `assessments` | i 4 questionari | lente di report, `topCount`, timer e durata stimata |
+| `talent_themes` | i 34 temi | array PostgreSQL per punti di forza, punti ciechi, azioni, contesti; più i testi delle lenti Leaders e Managers |
+| `questions` | i 406 item | FK verso l'assessment e verso i due temi, più i pesi per lato; `isActive` ritira un item senza perdere lo storico |
+| `test_sessions` | una compilazione | legata a un assessment; `answeredCount` e `totalQuestions` rendono la ripresa una lettura sola |
 | `responses` | una risposta | unique su `[testSessionId, questionId]`; `timedOut` e `latencyMs` per la qualità del dato |
-| `test_results` | il profilo calcolato | quote delle 4 aree, Top 5, `timeoutRatio`, durata |
+| `test_results` | il profilo calcolato | quote delle 4 aree, temi dominanti, `timeoutRatio`, durata |
 | `theme_scores` | punteggio per tema | denormalizzato per le query aggregate dell'Admin |
+| `admin_audit_logs` | azioni amministrative su dati personali | autore, interessato, momento; vedi Pannello Admin |
 
 **Perché salvare i risultati e non ricalcolarli.** Il report è un documento
 consegnato alla persona: deve restare identico nel tempo anche se il banco item
@@ -119,13 +129,20 @@ restituisce invece di ricalcolarlo, quindi un doppio click non genera due report
 
 | File | Ruolo |
 | --- | --- |
-| `src/app/dashboard/page.tsx` | il report completo (e lo stato vuoto per chi non ha ancora finito) |
+| `src/app/dashboard/page.tsx` | hub personale: i report completati e i questionari disponibili |
+| `src/app/report/[id]/page.tsx` | un report, con la lente del suo assessment |
+| `src/components/report/report-view.tsx` | il corpo del report, condiviso fra le lenti |
 | `src/components/report/domain-charts.tsx` | ciambella delle macro-aree e radar dei 12 temi |
 | `src/components/report/talent-card.tsx` | scheda espandibile di un talento |
 | `src/lib/pdf-report.tsx` | il documento PDF |
 | `src/app/api/report/[id]/pdf/route.tsx` | endpoint di download |
 
-**Cosa mostra la dashboard**
+**Le quattro lenti.** L'`Assessment.lens` decide quanti temi mettere in evidenza
+e quale sezione aggiuntiva compare in ciascuna scheda: *for Leaders* mostra
+«Quando guidi», *for Managers* «Nella gestione del team». Gli stessi testi
+finiscono nel PDF, in un riquadro dedicato.
+
+**Cosa mostra il report**
 
 1. **Sintesi** — talento dominante, macro-area prevalente, distanza dal secondo
    talento (profilo marcato o equilibrato), quota di risposte date entro il tempo.
@@ -153,7 +170,8 @@ titolo di livello corretto.
 Top 5, classifica completa, disclaimer metodologico, e una pagina per ciascuno
 dei cinque talenti. Il download è protetto: `getReportById()` filtra per
 `userId`, quindi un id indovinato non restituisce il report di un altro utente.
-La risposta ha `Cache-Control: private, no-store`.
+La risposta ha `Cache-Control: private, no-store`. Un amministratore può invece
+scaricare qualunque report, e in quel caso l'accesso viene registrato (sotto).
 
 > Nota tecnica: nella versione di `@react-pdf/renderer` in uso la prop `render`
 > (contenuto dinamico, es. numero di pagina) non produce output. Il piè di pagina
@@ -168,11 +186,38 @@ corso, tasso di completamento, durata media, quota di risposte scadute,
 bilanciamento medio della popolazione, temi più frequenti nelle Top 5, ultime
 compilazioni.
 
+`/admin/report` — elenco di tutti i profili compilati, con ricerca per nome o
+email, download del PDF di chiunque, export CSV di tutti i risultati e, in fondo
+alla pagina, il **registro degli accessi**.
+
+`/admin/nuovo-utente` — crea un account senza passare dalla registrazione
+pubblica. Se non si indica una password, il portale ne genera una temporanea
+(quattro gruppi da quattro caratteri, ~62 bit di entropia) e la mostra **una sola
+volta**: va consegnata alla persona su un altro canale. La password scelta
+dall'amministratore non viene invece rimandata a schermo, perché la conosce già.
+
 `/admin/utenti` — ricerca per nome o email, stato della compilazione, numero di
 report, promozione/rimozione del ruolo Admin.
 
-`/admin/domande` — elenco dei 66 item con i temi collegati e il numero di
-risposte raccolte; attivazione/disattivazione. La pagina avverte che
-disattivare item riduce la copertura dei due temi coinvolti e che conviene
-intervenire a gruppi omogenei, per non rompere l'equilibrio del design a
-confronto completo.
+`/admin/domande` — elenco degli item con i temi collegati e il numero di risposte
+raccolte, filtrabile per questionario; attivazione/disattivazione. La pagina
+avverte che disattivare item riduce la copertura dei due temi coinvolti e che
+conviene intervenire a gruppi omogenei, per non rompere l'equilibrio del disegno.
+
+### Tracciabilità
+
+Un report descrive preferenze e stile di lavoro di una persona reale. Dare a un
+amministratore la possibilità di scaricarlo è una scelta esplicita del prodotto,
+e va accompagnata da una contropartita: ogni azione amministrativa su dati
+personali — download di un report, export CSV, creazione di un utente, cambio di
+ruolo — viene scritta in `admin_audit_logs` con autore, interessato e momento.
+
+Il registro è visibile in fondo a `/admin/report`. Serve a poter rispondere, se
+qualcuno lo chiede, alla domanda «chi ha visto il mio profilo?». Se distribuisci
+il portale in un'organizzazione, dichiara questa visibilità nell'informativa
+privacy prima di somministrare il primo questionario.
+
+**Export CSV.** `GET /api/admin/export` (solo ADMIN) produce una riga per
+profilo. I valori che iniziano con `=`, `+`, `-` o `@` vengono neutralizzati con
+un apice: aprire il file in un foglio di calcolo non deve poter eseguire nulla
+(*CSV injection*).

@@ -1,11 +1,13 @@
 import 'server-only';
 
-import type { Domain, Prisma } from '@prisma/client';
+import type { Assessment, Domain, Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
 import { computeScores, LIKERT_NEUTRAL } from '@/lib/scoring';
 
-export const TIMER_SECONDS = Number(process.env.NEXT_PUBLIC_QUESTION_TIMER_SECONDS ?? 20);
+export const DEFAULT_TIMER_SECONDS = Number(
+  process.env.NEXT_PUBLIC_QUESTION_TIMER_SECONDS ?? 20,
+);
 
 export type QuestionForClient = {
   id: string;
@@ -16,6 +18,7 @@ export type QuestionForClient = {
 
 export type TestSessionState = {
   sessionId: string;
+  assessment: Pick<Assessment, 'id' | 'slug' | 'name' | 'subtitle' | 'lens' | 'estimatedMinutes'>;
   timerSeconds: number;
   totalQuestions: number;
   answeredCount: number;
@@ -26,14 +29,55 @@ export type TestSessionState = {
   resumeIndex: number;
 };
 
+export async function getAssessmentBySlug(slug: string) {
+  return prisma.assessment.findFirst({ where: { slug, isActive: true } });
+}
+
+/** Catalogo degli assessment con lo stato di avanzamento dell'utente. */
+export async function listAssessmentsForUser(userId: string) {
+  const [assessments, sessions, results] = await Promise.all([
+    prisma.assessment.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' },
+      include: { _count: { select: { questions: { where: { isActive: true } } } } },
+    }),
+    prisma.testSession.findMany({
+      where: { userId, status: 'IN_PROGRESS' },
+      select: { assessmentId: true, answeredCount: true, totalQuestions: true },
+    }),
+    prisma.testResult.findMany({
+      where: { userId },
+      orderBy: { computedAt: 'desc' },
+      select: { id: true, assessmentId: true, computedAt: true },
+    }),
+  ]);
+
+  const inProgress = new Map(sessions.map((s) => [s.assessmentId, s]));
+  const latestResult = new Map<string, (typeof results)[number]>();
+  for (const r of results) if (!latestResult.has(r.assessmentId)) latestResult.set(r.assessmentId, r);
+
+  return assessments.map((a) => ({
+    ...a,
+    questionCount: a._count.questions,
+    progress: inProgress.get(a.id) ?? null,
+    result: latestResult.get(a.id) ?? null,
+  }));
+}
+
 /**
- * Restituisce la sessione di test aperta dell'utente, creandone una nuova se
- * non esiste. È la funzione che rende possibile la ripresa del questionario:
- * lo stato vive nel database, non nel browser.
+ * Restituisce la sessione aperta dell'utente per un assessment, creandone una
+ * nuova se non esiste. È la funzione che rende possibile la ripresa: lo stato
+ * vive nel database, non nel browser.
  */
-export async function getOrCreateTestSession(userId: string): Promise<TestSessionState> {
+export async function getOrCreateTestSession(
+  userId: string,
+  assessmentSlug: string,
+): Promise<TestSessionState> {
+  const assessment = await getAssessmentBySlug(assessmentSlug);
+  if (!assessment) throw new Error('Questionario non trovato.');
+
   const questions = await prisma.question.findMany({
-    where: { isActive: true },
+    where: { assessmentId: assessment.id, isActive: true },
     orderBy: { position: 'asc' },
     select: { id: true, position: true, leftStatement: true, rightStatement: true },
   });
@@ -43,7 +87,7 @@ export async function getOrCreateTestSession(userId: string): Promise<TestSessio
   }
 
   let session = await prisma.testSession.findFirst({
-    where: { userId, status: 'IN_PROGRESS' },
+    where: { userId, assessmentId: assessment.id, status: 'IN_PROGRESS' },
     orderBy: { startedAt: 'desc' },
     include: { responses: { select: { questionId: true, value: true } } },
   });
@@ -52,8 +96,9 @@ export async function getOrCreateTestSession(userId: string): Promise<TestSessio
     session = await prisma.testSession.create({
       data: {
         userId,
+        assessmentId: assessment.id,
         totalQuestions: questions.length,
-        timerSeconds: TIMER_SECONDS,
+        timerSeconds: assessment.timerSeconds,
       },
       include: { responses: { select: { questionId: true, value: true } } },
     });
@@ -62,21 +107,24 @@ export async function getOrCreateTestSession(userId: string): Promise<TestSessio
   const answers: Record<string, number> = {};
   for (const r of session.responses) answers[r.questionId] = r.value;
 
-  const resumeIndex = Math.min(
-    questions.findIndex((q) => answers[q.id] === undefined) === -1
-      ? questions.length - 1
-      : questions.findIndex((q) => answers[q.id] === undefined),
-    questions.length - 1,
-  );
+  const firstUnanswered = questions.findIndex((q) => answers[q.id] === undefined);
 
   return {
     sessionId: session.id,
+    assessment: {
+      id: assessment.id,
+      slug: assessment.slug,
+      name: assessment.name,
+      subtitle: assessment.subtitle,
+      lens: assessment.lens,
+      estimatedMinutes: assessment.estimatedMinutes,
+    },
     timerSeconds: session.timerSeconds,
     totalQuestions: questions.length,
     answeredCount: session.responses.length,
     questions,
     answers,
-    resumeIndex,
+    resumeIndex: firstUnanswered === -1 ? questions.length - 1 : firstUnanswered,
   };
 }
 
@@ -97,16 +145,17 @@ export async function saveAnswer(params: {
   // Verifica di proprietà: una sessione può essere scritta solo dal suo utente.
   const session = await prisma.testSession.findFirst({
     where: { id: testSessionId, userId },
-    select: { id: true, status: true },
+    select: { id: true, status: true, assessmentId: true },
   });
   if (!session) throw new Error('Sessione di test non trovata.');
   if (session.status !== 'IN_PROGRESS') throw new Error('Questa sessione è già stata completata.');
 
+  // L'item deve appartenere all'assessment della sessione.
   const question = await prisma.question.findFirst({
-    where: { id: questionId, isActive: true },
+    where: { id: questionId, assessmentId: session.assessmentId, isActive: true },
     select: { id: true },
   });
-  if (!question) throw new Error('Domanda non valida.');
+  if (!question) throw new Error('Domanda non valida per questo questionario.');
 
   const storedValue = timedOut ? LIKERT_NEUTRAL : value;
 
@@ -117,10 +166,7 @@ export async function saveAnswer(params: {
   });
 
   const answeredCount = await prisma.response.count({ where: { testSessionId } });
-  await prisma.testSession.update({
-    where: { id: testSessionId },
-    data: { answeredCount },
-  });
+  await prisma.testSession.update({ where: { id: testSessionId }, data: { answeredCount } });
 
   return { answeredCount };
 }
@@ -138,6 +184,7 @@ export async function completeTest(params: {
   const session = await prisma.testSession.findFirst({
     where: { id: testSessionId, userId },
     include: {
+      assessment: { select: { id: true, topCount: true } },
       result: { select: { id: true } },
       responses: {
         include: {
@@ -163,7 +210,17 @@ export async function completeTest(params: {
     );
   }
 
-  const themes = await prisma.talentTheme.findMany({ select: { id: true, slug: true, domain: true } });
+  // Solo i temi effettivamente misurati da questo assessment entrano nel calcolo.
+  const measured = new Set<string>();
+  for (const r of session.responses) {
+    measured.add(r.question.leftTheme.slug);
+    measured.add(r.question.rightTheme.slug);
+  }
+
+  const themes = await prisma.talentTheme.findMany({
+    where: { slug: { in: [...measured] } },
+    select: { id: true, slug: true, domain: true },
+  });
   const themeDomains: Record<string, Domain> = {};
   const themeIdBySlug = new Map<string, string>();
   for (const t of themes) {
@@ -181,6 +238,7 @@ export async function completeTest(params: {
       rightWeight: r.question.rightWeight,
     })),
     themeDomains,
+    session.assessment.topCount,
   );
 
   const completedAt = new Date();
@@ -193,6 +251,7 @@ export async function completeTest(params: {
       data: {
         testSessionId: session.id,
         userId,
+        assessmentId: session.assessment.id,
         executingScore: outcome.domainScores.EXECUTING,
         influencingScore: outcome.domainScores.INFLUENCING,
         relationshipScore: outcome.domainScores.RELATIONSHIP,
@@ -224,10 +283,8 @@ export async function completeTest(params: {
 }
 
 const reportInclude = {
-  themeScores: {
-    include: { theme: true },
-    orderBy: { rank: 'asc' },
-  },
+  assessment: true,
+  themeScores: { include: { theme: true }, orderBy: { rank: 'asc' } },
   testSession: {
     select: { startedAt: true, completedAt: true, totalQuestions: true, timerSeconds: true },
   },
@@ -236,18 +293,28 @@ const reportInclude = {
 
 export type FullReport = Prisma.TestResultGetPayload<{ include: typeof reportInclude }>;
 
-/** Ultimo report disponibile dell'utente (null se non ha ancora completato il test). */
-export async function getLatestReport(userId: string): Promise<FullReport | null> {
+/** Ultimo report dell'utente, eventualmente filtrato per assessment. */
+export async function getLatestReport(
+  userId: string,
+  assessmentSlug?: string,
+): Promise<FullReport | null> {
   return prisma.testResult.findFirst({
-    where: { userId },
+    where: { userId, ...(assessmentSlug ? { assessment: { slug: assessmentSlug } } : {}) },
     orderBy: { computedAt: 'desc' },
     include: reportInclude,
   });
 }
 
-export async function getReportById(resultId: string, userId: string): Promise<FullReport | null> {
+/**
+ * Un report per id. Senza `userId` non applica il filtro di proprietà: usarlo
+ * solo dopo un controllo di autorizzazione esplicito (vedi il download Admin).
+ */
+export async function getReportById(
+  resultId: string,
+  userId?: string,
+): Promise<FullReport | null> {
   return prisma.testResult.findFirst({
-    where: { id: resultId, userId },
+    where: { id: resultId, ...(userId ? { userId } : {}) },
     include: reportInclude,
   });
 }
@@ -262,11 +329,16 @@ export async function listUserResults(userId: string) {
       computedAt: true,
       topThemeSlugs: true,
       durationSeconds: true,
+      assessment: { select: { slug: true, name: true, lens: true } },
     },
   });
 }
 
 /** Elimina la sessione in corso: usata dal pulsante "ricomincia da capo". */
-export async function resetInProgressSession(userId: string) {
-  await prisma.testSession.deleteMany({ where: { userId, status: 'IN_PROGRESS' } });
+export async function resetInProgressSession(userId: string, assessmentSlug: string) {
+  const assessment = await getAssessmentBySlug(assessmentSlug);
+  if (!assessment) return;
+  await prisma.testSession.deleteMany({
+    where: { userId, assessmentId: assessment.id, status: 'IN_PROGRESS' },
+  });
 }

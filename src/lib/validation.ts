@@ -37,6 +37,17 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'Inserisci la password'),
 });
 
+/** Creazione di un utente dal pannello Admin. */
+export const adminCreateUserSchema = z.object({
+  name: z.string().trim().min(2, 'Inserisci nome e cognome').max(80),
+  email: emailSchema,
+  role: z.enum(['USER', 'ADMIN']),
+  /** Vuota: il portale genera una password temporanea da consegnare a mano. */
+  password: z.union([passwordSchema, z.literal('')]).optional(),
+});
+
+export type AdminCreateUserInput = z.infer<typeof adminCreateUserSchema>;
+
 export const answerSchema = z.object({
   questionId: z.string().min(1),
   value: z.number().int().min(LIKERT_MIN).max(LIKERT_MAX),

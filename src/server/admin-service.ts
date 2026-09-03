@@ -13,6 +13,13 @@ export type AdminMetrics = {
   avgDurationSeconds: number | null;
   avgTimeoutRatio: number;
   activeQuestions: number;
+  perAssessment: {
+    slug: string;
+    name: string;
+    completed: number;
+    inProgress: number;
+    avgDurationSeconds: number | null;
+  }[];
   domainAverages: Record<Domain, number>;
   themeLeaderboard: {
     slug: string;
@@ -108,6 +115,34 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
     }))
     .sort((a, b) => b.topFiveCount - a.topFiveCount || b.avgScore - a.avgScore);
 
+  const assessments = await prisma.assessment.findMany({
+    orderBy: { sortOrder: 'asc' },
+    select: { id: true, slug: true, name: true },
+  });
+  const [sessionGroups, durationGroups] = await Promise.all([
+    prisma.testSession.groupBy({ by: ['assessmentId', 'status'], _count: { _all: true } }),
+    prisma.testResult.groupBy({ by: ['assessmentId'], _avg: { durationSeconds: true } }),
+  ]);
+  const avgDurationByAssessment = new Map(
+    durationGroups.map((g) => [g.assessmentId, g._avg.durationSeconds]),
+  );
+  const perAssessment = assessments.map((a) => {
+    const completed = sessionGroups.find(
+      (g) => g.assessmentId === a.id && g.status === 'COMPLETED',
+    );
+    const running = sessionGroups.find(
+      (g) => g.assessmentId === a.id && g.status === 'IN_PROGRESS',
+    );
+    const avg = avgDurationByAssessment.get(a.id);
+    return {
+      slug: a.slug,
+      name: a.name,
+      completed: completed?._count._all ?? 0,
+      inProgress: running?._count._all ?? 0,
+      avgDurationSeconds: avg ? Math.round(avg) : null,
+    };
+  });
+
   const totalSessions = testsCompleted + testsInProgress;
 
   return {
@@ -122,6 +157,7 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
       : null,
     avgTimeoutRatio: Math.round((aggregates._avg.timeoutRatio ?? 0) * 1000) / 10,
     activeQuestions,
+    perAssessment,
     domainAverages: {
       EXECUTING: Math.round((aggregates._avg.executingScore ?? 25) * 10) / 10,
       INFLUENCING: Math.round((aggregates._avg.influencingScore ?? 25) * 10) / 10,
@@ -168,13 +204,104 @@ export async function listUsersForAdmin(query?: string) {
   });
 }
 
-export async function listQuestionsForAdmin() {
+export async function listQuestionsForAdmin(assessmentSlug?: string) {
   return prisma.question.findMany({
-    orderBy: { position: 'asc' },
+    where: assessmentSlug ? { assessment: { slug: assessmentSlug } } : undefined,
+    orderBy: [{ assessment: { sortOrder: 'asc' } }, { position: 'asc' }],
     include: {
+      assessment: { select: { slug: true, name: true } },
       leftTheme: { select: { name: true, domain: true, slug: true } },
       rightTheme: { select: { name: true, domain: true, slug: true } },
       _count: { select: { responses: true } },
     },
   });
+}
+
+// ===========================================================================
+// Report: consultazione, download e tracciabilità
+// ===========================================================================
+
+export async function listReportsForAdmin(query?: string) {
+  return prisma.testResult.findMany({
+    where: query
+      ? {
+          user: {
+            OR: [
+              { email: { contains: query, mode: 'insensitive' } },
+              { name: { contains: query, mode: 'insensitive' } },
+            ],
+          },
+        }
+      : undefined,
+    orderBy: { computedAt: 'desc' },
+    take: 100,
+    select: {
+      id: true,
+      computedAt: true,
+      durationSeconds: true,
+      timeoutRatio: true,
+      topThemeSlugs: true,
+      user: { select: { id: true, name: true, email: true } },
+      assessment: { select: { name: true, slug: true, lens: true } },
+      _count: { select: { downloads: true } },
+    },
+  });
+}
+
+/** Registro degli accessi amministrativi a dati personali. */
+export async function listAuditLog(limit = 50) {
+  return prisma.adminAuditLog.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+  });
+}
+
+/** Righe dell'export CSV: un profilo per riga, con i temi dominanti. */
+export async function buildResultsCsv(): Promise<string> {
+  const results = await prisma.testResult.findMany({
+    orderBy: { computedAt: 'desc' },
+    select: {
+      computedAt: true,
+      durationSeconds: true,
+      timeoutRatio: true,
+      executingScore: true,
+      influencingScore: true,
+      relationshipScore: true,
+      strategicScore: true,
+      topThemeSlugs: true,
+      user: { select: { name: true, email: true } },
+      assessment: { select: { name: true } },
+    },
+  });
+
+  const header = [
+    'data', 'utente', 'email', 'questionario', 'durata_secondi', 'quota_timeout',
+    'esecuzione_pct', 'influenza_pct', 'relazioni_pct', 'strategico_pct', 'temi_dominanti',
+  ];
+
+  const escape = (value: unknown) => {
+    const text = String(value ?? '');
+    // Le formule iniziali (=, +, -, @) vengono neutralizzate: aprire il CSV in
+    // un foglio di calcolo non deve poter eseguire nulla (CSV injection).
+    const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+    return `"${safe.replace(/"/g, '""')}"`;
+  };
+
+  const rows = results.map((r) =>
+    [
+      r.computedAt.toISOString(),
+      r.user.name ?? '',
+      r.user.email,
+      r.assessment.name,
+      r.durationSeconds ?? '',
+      r.timeoutRatio,
+      r.executingScore,
+      r.influencingScore,
+      r.relationshipScore,
+      r.strategicScore,
+      r.topThemeSlugs.join(' | '),
+    ].map(escape).join(','),
+  );
+
+  return [header.join(','), ...rows].join('\r\n');
 }

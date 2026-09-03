@@ -1,0 +1,342 @@
+{
+ "realizzatore": [
+  "Sento il bisogno di chiudere qualcosa di concreto ogni singolo giorno",
+  "A fine settimana misuro il mio valore da quanto ho prodotto",
+  "Il lavoro arretrato mi toglie serenità finchè non lo smaltisco",
+  "Preferisco una giornata piena a una giornata leggera",
+  "Mi metto al lavoro subito, anche se l'obiettivo non è ancora perfetto",
+  "Trovo energia nel guardare la lista delle cose che ho completato",
+  "Faccio fatica a stare fermo quando c'è ancora qualcosa da finire",
+  "Mi assegno obiettivi personali anche quando nessuno me li chiede"
+ ],
+ "organizzazione": [
+  "Amo pianificare ogni dettaglio prima di iniziare",
+  "Ho bisogno di un metodo chiaro per lavorare bene",
+  "Le scadenze scritte in calendario mi danno sicurezza",
+  "Metto in ordine le informazioni prima ancora di analizzarle",
+  "Costruisco procedure per non dover ridecidere ogni volta",
+  "I cambi di programma mi infastidiscono più dei problemi tecnici",
+  "I miei file e i miei spazi seguono una logica precisa",
+  "Preferisco un piano imperfetto a nessun piano"
+ ],
+ "responsabilita": [
+  "Quando prometto qualcosa, per me diventa un obbligo morale",
+  "Se un lavoro esce male, sento che la responsabilità è comunque mia",
+  "Preferisco fare tardi piuttosto che consegnare qualcosa di incompleto",
+  "Gli altri mi affidano le cose importanti perché sanno che le concludo",
+  "Non riesco a lasciare un impegno a metà, anche quando non conviene",
+  "Mi sento in debito finchè non ho restituito cio' che ho ricevuto",
+  "Anche gli impegni presi a voce, per me, contano come contratti",
+  "Preferisco sacrificarmi piuttosto che deludere chi conta su di me"
+ ],
+ "comunicazione": [
+  "Mi viene naturale spiegare le cose in modo che tutti capiscano",
+  "Uso storie ed esempi concreti per far arrivare un concetto",
+  "In riunione prendo la parola per chiarire il punto",
+  "Mi diverte trovare la frase giusta per riassumere un'idea",
+  "Preparo con cura come dirò le cose, non solo cosa dirò",
+  "Parlare davanti a un pubblico mi dà energia invece che ansia",
+  "Traduco volentieri il linguaggio tecnico per chi non lo conosce",
+  "Mi accorgo subito quando un messaggio non è arrivato"
+ ],
+ "attivatore": [
+  "Preferisco improvvisare e correggere strada facendo",
+  "Dopo dieci minuti di analisi mi chiedo quando si parte",
+  "Imparo molto di più provando che studiando",
+  "Sono io a fare il primo passo quando il gruppo è bloccato",
+  "Una decisione presa oggi vale più di una perfetta fra un mese",
+  "Le lunghe riunioni preparatorie mi tolgono energia",
+  "Preferisco un prototipo grezzo a una presentazione impeccabile",
+  "Mi muovo anche quando non ho tutte le informazioni"
+ ],
+ "fiducia-in-se": [
+  "So di poter gestire quasi qualunque situazione mi capiti",
+  "Prendo decisioni difficili senza bisogno di conferme",
+  "Se sono convinto di una scelta, la sostengo anche da solo",
+  "Le critiche non mi fanno cambiare rotta facilmente",
+  "Mi fido del mio giudizio più che del parere della maggioranza",
+  "Nei momenti di crisi resto lucido mentre gli altri si agitano",
+  "Preferisco decidere io piuttosto che aspettare un consenso",
+  "Non ho bisogno di essere rassicurato per andare avanti"
+ ],
+ "empatia": [
+  "Percepisco lo stato d'animo degli altri prima che lo dicano",
+  "Le emozioni delle persone attorno a me mi arrivano forte",
+  "Capisco come sta un collega dal tono con cui mi saluta",
+  "Le persone mi confidano cose personali anche senza conoscermi bene",
+  "Prima di rispondere penso a come si sentira' chi mi ascolta",
+  "Mi accorgo della tensione in una stanza anche se nessuno parla",
+  "Faccio fatica a restare indifferente quando qualcuno sta male",
+  "Scelgo le parole con cura nei momenti delicati"
+ ],
+ "armonia": [
+  "Cerco sempre il punto d'incontro fra posizioni diverse",
+  "Le discussioni accese mi sembrano spesso energia sprecata",
+  "Preferisco cedere su un dettaglio che incrinare un rapporto",
+  "Faccio da ponte quando due colleghi non si parlano",
+  "Evito di sollevare obiezioni che non siano davvero decisive",
+  "Un accordo condiviso vale più di una decisione perfetta",
+  "Mi accordo sul metodo prima di entrare nel merito",
+  "Guardo prima cio' che unisce e poi cio' che divide"
+ ],
+ "sviluppatore": [
+  "Vedo negli altri il potenziale che loro non vedono ancora",
+  "I progressi di chi affianco mi danno più soddisfazione dei miei",
+  "Mi ritrovo a fare da mentore anche senza un ruolo formale",
+  "Ho pazienza autentica con chi impara lentamente",
+  "Preferisco insegnare a fare che fare al posto di qualcuno",
+  "Noto i piccoli miglioramenti delle persone e glieli dico",
+  "Investo tempo su chi è promettente anche se ora rende poco",
+  "Mi piace costruire percorsi di crescita su misura"
+ ],
+ "analitico": [
+  "Prima di accettare una tesi chiedo su quali dati si basa",
+  "Cerco sempre la causa che sta dietro a un risultato",
+  "Diffido delle conclusioni tratte da pochi casi",
+  "Mi piace smontare un problema nelle sue componenti",
+  "Preferisco un dato verificato a un'impressione condivisa",
+  "Individuo rapidamente i punti deboli di un ragionamento",
+  "Non decido finchè non ho considerato le spiegazioni alternative",
+  "Le scelte prese d'istinto mi mettono a disagio"
+ ],
+ "ideazione": [
+  "Mi entusiasmano le idee nuove più della loro esecuzione",
+  "Collego spesso cose che sembrano non c'entrare nulla fra loro",
+  "Davanti a un vincolo cerco un modo diverso di vedere il problema",
+  "Genero molte alternative anche quando una soluzione c'è già",
+  "Mi annoio quando si ripete sempre lo stesso schema",
+  "Le mie idee migliori arrivano mentre sto facendo altro",
+  "Preferisco riformulare la domanda che rispondere a quella data",
+  "Mi piace immaginare scenari che ancora non esistono"
+ ],
+ "apprendimento": [
+  "Mi dà energia il passaggio dal non sapere al sapere",
+  "Studio volentieri argomenti che non mi servono subito",
+  "Quando inizio qualcosa di nuovo mi sento nel mio elemento",
+  "Accumulo corsi, letture e approfondimenti per pura curiosità",
+  "Preferisco un progetto mai fatto prima a uno che padroneggio",
+  "Il cambiamento mi incuriosisce più di quanto mi preoccupi",
+  "Provo i nuovi strumenti prima che diventino uno standard",
+  "Mi piace essere principiante, anche se è scomodo"
+ ],
+ "coordinatore": [
+  "Mi piace riorganizzare le risorse finché tutto non incastra",
+  "Gestisco bene molte cose in movimento contemporaneamente",
+  "Quando un piano salta, ridispongo i pezzi senza agitarmi",
+  "Trovo combinazioni di persone che rendono più della somma",
+  "Cambio volentieri assetto se scopro un modo migliore",
+  "Il caos organizzativo mi stimola invece di bloccarmi",
+  "Coordino più attività parallele senza perdere il filo",
+  "Vedo subito quale risorsa è nel posto sbagliato"
+ ],
+ "valori": [
+  "Alcuni princìpi per me non sono negoziabili",
+  "Ho bisogno che il mio lavoro sia coerente con ciò in cui credo",
+  "Rifiuto incarichi che vanno contro le mie convinzioni",
+  "Il senso di quello che faccio conta più della retribuzione",
+  "Le mie scelte partono sempre dagli stessi criteri di fondo",
+  "Preferisco guadagnare meno che tradire un principio",
+  "So esattamente quali sono le cose che contano per me",
+  "Valuto le proposte prima di tutto sul piano etico"
+ ],
+ "equita": [
+  "Le stesse regole devono valere per tutti",
+  "I favoritismi mi disturbano più di qualunque inefficienza",
+  "Preferisco criteri dichiarati alle decisioni caso per caso",
+  "Mi accorgo subito quando qualcuno riceve un trattamento diverso",
+  "Difendo chi ha meno voce nelle discussioni",
+  "Le eccezioni non spiegate mi sembrano una crepa",
+  "Costruisco procedure uguali per chiunque le usi",
+  "Trovo giusto che a parità di lavoro corrisponda parità di trattamento"
+ ],
+ "prudenza": [
+  "Prima di impegnarmi valuto che cosa può andare storto",
+  "Scelgo le parole con attenzione prima di parlare",
+  "Preferisco una decisione ponderata a una rapida",
+  "Anticipo gli ostacoli che gli altri non hanno considerato",
+  "Mi muovo con cautela nelle situazioni che non conosco",
+  "Rifletto a lungo prima di prendere impegni importanti",
+  "Mi sento a disagio quando si decide senza valutare i rischi",
+  "Do la mia opinione solo quando ne sono sicuro"
+ ],
+ "focalizzazione": [
+  "Scelgo una direzione e non la perdo di vista",
+  "Valuto ogni attività chiedendomi se mi avvicina all'obiettivo",
+  "Riporto al punto le discussioni che divagano",
+  "Taglio senza esitare ciò che non porta al risultato",
+  "Le priorità che cambiano di continuo mi disorientano",
+  "Porto a termine progetti lunghi senza perdere intensità",
+  "Ho bisogno di sapere esattamente dove stiamo andando",
+  "Mi infastidisce essere distolto da ciò su cui sono concentrato"
+ ],
+ "risolutore": [
+  "Mi accendo davanti a qualcosa che non funziona",
+  "Trovo soddisfazione nel rimettere in piedi ciò che è rotto",
+  "Individuo rapidamente la causa di un malfunzionamento",
+  "Nelle crisi divento più lucido, non meno",
+  "Noto per primo i difetti in un lavoro finito",
+  "Non mi scoraggio davanti a problemi che tornano",
+  "Preferisco recuperare qualcosa di compromesso che gestire il già funzionante",
+  "Vado a cercare cosa si può sistemare anche quando nessuno lo chiede"
+ ],
+ "assertivita": [
+  "Dico le cose come stanno anche quando è scomodo",
+  "Prendo io il controllo quando la situazione è confusa",
+  "Il confronto diretto non mi mette a disagio",
+  "Metto sul tavolo ciò che gli altri pensano ma non dicono",
+  "La mia presenza si nota quando entro in una discussione",
+  "Preferisco uno scontro chiaro a un accordo ambiguo",
+  "Non ho difficoltà a esprimere una posizione impopolare",
+  "Quando serve una decisione, la prendo io"
+ ],
+ "competizione": [
+  "Misuro i miei risultati su quelli degli altri",
+  "Vincere mi dà una soddisfazione che il solo risultato non dà",
+  "Le classifiche mi motivano più degli obiettivi assoluti",
+  "Vivo male le sconfitte anche quando contano poco",
+  "Voglio sapere come sto andando rispetto ai colleghi",
+  "Un contesto senza confronto mi toglie energia",
+  "Punto a essere il migliore, non semplicemente bravo",
+  "Mi stimola sapere che qualcuno sta facendo meglio di me"
+ ],
+ "massimizzatore": [
+  "Mi interessa portare il buono a eccellente",
+  "Preferisco rifinire ciò che funziona che aggiustare ciò che non va",
+  "Individuo subito i punti di forza delle persone",
+  "Mi accontento raramente di un risultato solo sufficiente",
+  "Investo sulle cose in cui sono già bravo",
+  "Noto la differenza fra un lavoro buono e uno ottimo",
+  "Mi infastidisce consegnare qualcosa di mediocre",
+  "Spingo gli altri a usare ciò che sanno fare meglio"
+ ],
+ "riconoscimento": [
+  "Voglio che il mio contributo lasci un segno",
+  "Scelgo volentieri i progetti che si vedono",
+  "Mi motiva sapere che il mio lavoro verrà notato",
+  "Punto a traguardi che contino davvero, non ai piccoli passi",
+  "Mi piace essere associato a persone e progetti credibili",
+  "Il lavoro invisibile mi dà meno energia",
+  "Voglio essere ricordato per qualcosa di importante",
+  "Cerco ruoli in cui il mio impatto sia riconoscibile"
+ ],
+ "socievolezza": [
+  "Rompo il ghiaccio con gli sconosciuti senza fatica",
+  "Una stanza piena di gente nuova mi mette di buon umore",
+  "Conosco qualcuno in quasi ogni funzione dell'azienda",
+  "Mi diverte conquistare la simpatia di chi non mi conosce",
+  "Costruisco nuovi contatti con grande facilità",
+  "Preferisco conoscere molte persone che poche a fondo",
+  "Attacco discorso volentieri anche fuori dal lavoro",
+  "Trovo naturale mettere a proprio agio chi è appena arrivato"
+ ],
+ "adattabilita": [
+  "Mi muovo bene quando i piani cambiano all'improvviso",
+  "Vivo il presente più che il futuro programmato",
+  "Un cambio di programma non mi rovina la giornata",
+  "Rispondo volentieri alle richieste dell'ultimo minuto",
+  "Preferisco reagire alla situazione che seguire un piano",
+  "Le emergenze non mi mettono in difficoltà",
+  "Mi adatto rapidamente a un contesto nuovo",
+  "Faccio fatica a pianificare a lungo termine"
+ ],
+ "connessione": [
+  "Sento che le cose sono collegate fra loro",
+  "Considero le conseguenze che vanno oltre il mio perimetro",
+  "Trovo un senso più ampio anche negli eventi negativi",
+  "Faccio da ponte fra persone e funzioni distanti",
+  "Le coincidenze per me raramente sono solo coincidenze",
+  "Penso all'impatto che il mio lavoro ha sugli altri",
+  "Mi interessa il quadro generale più del singolo pezzo",
+  "Credo che ognuno faccia parte di qualcosa di più grande"
+ ],
+ "inclusione": [
+  "Noto subito chi è rimasto ai margini del gruppo",
+  "Mi attivo per far entrare chi resta fuori",
+  "Mi disturba vedere qualcuno escluso da una decisione",
+  "Coinvolgo volentieri più persone possibile",
+  "Cerco l'opinione di chi non ha ancora parlato",
+  "Accolgo i nuovi arrivati senza che me lo chiedano",
+  "I gruppi chiusi mi mettono a disagio",
+  "Preferisco allargare il cerchio che restringerlo"
+ ],
+ "individualizzazione": [
+  "Colgo rapidamente cosa rende unica una persona",
+  "Adatto il modo di comunicare a chi ho davanti",
+  "Capisco cosa motiva ciascuno dei miei colleghi",
+  "Mi accorgo delle differenze che agli altri sfuggono",
+  "Non credo che esista un modo unico di gestire le persone",
+  "So chi lavora bene con chi e perché",
+  "Ricordo dettagli personali di chi frequento poco",
+  "Preferisco trattare ciascuno secondo il suo carattere"
+ ],
+ "positivita": [
+  "Porto energia nei gruppi in cui lavoro",
+  "Trovo il lato buono anche nelle giornate storte",
+  "Il mio entusiasmo si trasmette agli altri",
+  "Celebro volentieri i piccoli progressi",
+  "Preferisco incoraggiare che criticare",
+  "Riesco a rendere piacevole anche un lavoro noioso",
+  "La gente sta meglio dopo aver parlato con me",
+  "Guardo avanti con ottimismo anche dopo un insuccesso"
+ ],
+ "relazione": [
+  "Preferisco poche relazioni profonde a molte superficiali",
+  "Do il meglio con le persone di cui mi fido",
+  "Ho bisogno di tempo prima di aprirmi con qualcuno nuovo",
+  "Sono estremamente leale verso il mio gruppo ristretto",
+  "I rapporti di lavoro per me diventano rapporti personali",
+  "Rendo molto di più in un team stabile",
+  "Mi costa ricominciare da capo con persone nuove",
+  "Conosco davvero a fondo i colleghi più vicini"
+ ],
+ "contesto": [
+  "Per capire il presente ho bisogno di sapere com'è iniziato",
+  "Chiedo sempre perché le cose sono state fatte così",
+  "Ricordo la storia dei progetti meglio dei colleghi",
+  "Cerco i precedenti prima di affrontare un problema nuovo",
+  "Mi fido delle lezioni imparate in passato",
+  "Prima di cambiare un processo voglio sapere a cosa serviva",
+  "Riconosco i pattern che si ripetono nel tempo",
+  "Trovo utile ricostruire come siamo arrivati fin qui"
+ ],
+ "visione-futura": [
+  "Immagino con chiarezza come potrebbero essere le cose fra dieci anni",
+  "Il futuro mi dà più energia del presente",
+  "Descrivo scenari che gli altri riescono a vedere",
+  "Mi entusiasmano le possibilità ancora inesistenti",
+  "Colgo le tendenze prima che diventino evidenti",
+  "Faccio fatica a occuparmi solo dell'oggi",
+  "Penso spesso a dove saremo fra qualche anno",
+  "Mi sento tirato in avanti da ciò che potrebbe essere"
+ ],
+ "raccolta": [
+  "Archivio informazioni perché prima o poi serviranno",
+  "Colleziono articoli, dati e riferimenti in continuazione",
+  "Sono la persona a cui chiedono se serve un dato",
+  "Faccio fatica a buttare via materiale che potrebbe servire",
+  "Esploro ampiamente prima di restringere il campo",
+  "Voglio sapere di più prima di decidere",
+  "Accumulo strumenti e risorse anche senza un uso immediato",
+  "Mi incuriosisce quasi ogni argomento"
+ ],
+ "riflessione": [
+  "Ho bisogno di tempo per pensare prima di rispondere",
+  "Il pensiero per me è un'attività, non una preparazione",
+  "Preferisco riflettere da solo che discutere subito",
+  "Le riunioni troppo rapide non mi permettono di contribuire",
+  "Rimugino a lungo sulle questioni complesse",
+  "Le mie conclusioni arrivano dopo un lavoro che non si vede",
+  "Mi piace stare in silenzio a elaborare",
+  "Pongo domande che spostano il livello della discussione"
+ ],
+ "strategia": [
+  "Vedo rapidamente quale strada porta dove serve",
+  "Scarto subito le alternative che non reggono",
+  "Anticipo dove finirà ciascuna opzione",
+  "Faccio fatica a spiegare come sono arrivato alla conclusione",
+  "Riconosco i vicoli ciechi prima di imboccarli",
+  "Semplifico situazioni complesse in poche opzioni reali",
+  "Trovo la scorciatoia che gli altri non vedono",
+  "Preferisco scegliere la rotta che pianificare i dettagli"
+ ]
+}

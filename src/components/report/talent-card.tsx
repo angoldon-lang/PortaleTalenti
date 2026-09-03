@@ -19,6 +19,8 @@ export type TalentCardData = {
   actionTips: string[];
   thrivesIn: string[];
   score: number;
+  /** Sezione aggiuntiva dettata dalla lente del report (Leaders / Managers). */
+  lensNote?: { heading: string; body: string } | null;
 };
 
 /**
@@ -86,6 +88,15 @@ export function TalentCard({ talent, defaultOpen = false }: { talent: TalentCard
               <p key={i}>{paragraph}</p>
             ))}
           </div>
+
+          {talent.lensNote && (
+            <section className="rounded-xl border border-brand-200 bg-brand-50/60 p-4">
+              <h4 className="text-sm font-semibold text-brand-900">{talent.lensNote.heading}</h4>
+              <p className="mt-1.5 text-[15px] leading-relaxed text-ink-700">
+                {talent.lensNote.body}
+              </p>
+            </section>
+          )}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <DetailList

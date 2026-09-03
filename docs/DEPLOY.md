@@ -62,18 +62,28 @@ configurazione.
 `npm run db:seed`: l'upsert su `slug` aggiorna descrizioni, punti di forza e
 punti ciechi senza toccare i punteggi già calcolati.
 
-**Modificare gli item.** Il banco è generato: intervieni sulle affermazioni in
-`scripts/gen_questions.py`, rigenera con `python3 scripts/gen_questions.py` e
+**Modificare gli item.** Le affermazioni stanno in `scripts/statements/*.json`
+(una per banca). Modificale, rigenera con `python3 scripts/gen_questions.py` e
 rilancia il seed. L'upsert avviene su `position`, quindi le risposte già raccolte
 restano collegate. Se cambi il *significato* di un item, considera che i report
 precedenti sono stati calcolati su una versione diversa: `test_results` conserva
 comunque il profilo consegnato all'utente.
 
-**Aggiungere un tema.** Un tredicesimo tema porterebbe le coppie da 66 a 78 item.
-Aggiungi il tema in `src/content/themes.ts`, le sue 12 affermazioni nel
-generatore, rigenera e riesegui il seed. Verifica poi con
+**Aggiungere un tema.** Aggiungilo in `src/content/themes.ts` (con i testi delle
+lenti Leaders e Managers) e inserisci le sue affermazioni in ciascun file di
+`scripts/statements/`, tante quante ne servono alla banca: 11 per `core12`, 8 per
+le banche a 34 temi. Poi rigenera e riesegui il seed. Il generatore fallisce con
+un messaggio esplicito se le affermazioni non bastano.
+
+Attenzione: cambiando il numero di temi cambia anche il vincolo sugli scarti del
+disegno circolante (vedi [`MODELLO.md`](MODELLO.md) §3.3). Verifica sempre con
 `npx tsx scripts/simulate.ts` che l'algoritmo continui a ricostruire un profilo
-noto.
+noto su tutti e quattro i questionari.
+
+**Aggiungere un questionario.** Definiscilo in `src/content/assessments.ts`,
+aggiungi la sua banca in `scripts/gen_questions.py` e il file di affermazioni
+corrispondente. Il seed crea l'assessment e i suoi item; la UI lo mostra
+automaticamente nel catalogo.
 
 **Retention.** Le sessioni abbandonate restano in stato `IN_PROGRESS`. Una pulizia
 periodica di quelle inattive da oltre 90 giorni tiene ordinata la tabella:

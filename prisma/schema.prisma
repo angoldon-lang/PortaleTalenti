@@ -107,17 +107,21 @@ model TalentTheme {
   domain Domain
 
   /// Claim di una riga mostrato nelle card della Top 5.
-  tagline         String
+  tagline            String
   /// Descrizione approfondita del tema (2-4 paragrafi).
-  fullDescription String   @db.Text
+  fullDescription    String   @db.Text
   /// Come suona il tema quando lavora al meglio.
-  strengths       String[]
+  strengths          String[]
   /// Punti ciechi: il lato ombra del talento quando è sovra-utilizzato.
-  blindSpots      String[]
+  blindSpots         String[]
   /// Azioni concrete per allenare il tema.
-  actionTips      String[]
+  actionTips         String[]
   /// Professioni / contesti in cui il tema rende di più.
-  thrivesIn       String[]
+  thrivesIn          String[]
+  /// Come il tema si esprime quando la persona guida (lente LEADERS).
+  leaderApplication  String   @default("") @db.Text
+  /// Come far rendere al meglio chi ha questo tema (lente MANAGERS).
+  managerApplication String   @default("") @db.Text
 
   leftInQuestions  Question[]   @relation("LeftTheme")
   rightInQuestions Question[]   @relation("RightTheme")
@@ -128,13 +132,61 @@ model TalentTheme {
 }
 
 // ===========================================================================
-// MODULO 2 — Questionario a coppie di affermazioni contrapposte
+// MODULO 2 — Assessment e questionari
+// ===========================================================================
+
+/// Lente di lettura del report prodotto da un assessment.
+enum ReportLens {
+  /// Top 5 e classifica completa dei temi somministrati.
+  STANDARD
+  /// Tutti i 34 temi ordinati, con la Top 10 in evidenza.
+  FULL_34
+  /// Come i talenti si esprimono nel ruolo di chi guida.
+  LEADERS
+  /// Come i talenti si esprimono nella gestione quotidiana di un team.
+  MANAGERS
+}
+
+/// Un questionario somministrabile. Ogni assessment ha la propria banca di
+/// item e la propria lente di report.
+model Assessment {
+  id          String @id @default(cuid())
+  slug        String @unique
+  name        String
+  subtitle    String
+  description String @db.Text
+
+  lens ReportLens @default(STANDARD)
+
+  /// Quanti temi dominanti evidenziare nel report.
+  topCount         Int @default(5)
+  /// Secondi per item; 0 disattiva il timer.
+  timerSeconds     Int @default(20)
+  /// Minuti stimati di compilazione, mostrati prima di iniziare.
+  estimatedMinutes Int
+
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+
+  questions    Question[]
+  testSessions TestSession[]
+  results      TestResult[]
+
+  @@index([isActive, sortOrder])
+  @@map("assessments")
+}
+
+// ===========================================================================
+// Item del questionario
 // ===========================================================================
 
 model Question {
-  id       String @id @default(cuid())
-  /// Ordine di somministrazione (1..N).
-  position Int    @unique
+  id           String     @id @default(cuid())
+  assessmentId String
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  /// Ordine di somministrazione dentro il proprio assessment (1..N).
+  position Int
 
   leftStatement  String @db.Text
   rightStatement String @db.Text
@@ -156,7 +208,8 @@ model Question {
 
   responses Response[]
 
-  @@index([isActive, position])
+  @@unique([assessmentId, position])
+  @@index([assessmentId, isActive, position])
   @@map("questions")
 }
 
@@ -168,9 +221,10 @@ enum TestStatus {
 
 /// Una compilazione del questionario. Consente di riprendere da dove si era rimasti.
 model TestSession {
-  id     String     @id @default(cuid())
-  userId String
-  status TestStatus @default(IN_PROGRESS)
+  id           String     @id @default(cuid())
+  userId       String
+  assessmentId String
+  status       TestStatus @default(IN_PROGRESS)
 
   /// Numero di item già risposti: indice di ripresa del questionario.
   answeredCount  Int @default(0)
@@ -183,11 +237,12 @@ model TestSession {
   lastActivityAt DateTime  @updatedAt
   completedAt    DateTime?
 
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  responses Response[]
-  result    TestResult?
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assessment Assessment  @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  responses  Response[]
+  result     TestResult?
 
-  @@index([userId, status])
+  @@index([userId, assessmentId, status])
   @@map("test_sessions")
 }
 
@@ -224,6 +279,7 @@ model TestResult {
   id            String @id @default(cuid())
   testSessionId String @unique
   userId        String
+  assessmentId  String
 
   /// Punteggi 0-100 per ciascuna delle 4 macro-aree (normalizzati a somma 100).
   executingScore    Float
@@ -241,11 +297,14 @@ model TestResult {
 
   computedAt DateTime @default(now())
 
-  testSession TestSession  @relation(fields: [testSessionId], references: [id], onDelete: Cascade)
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testSession TestSession     @relation(fields: [testSessionId], references: [id], onDelete: Cascade)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assessment  Assessment      @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
   themeScores ThemeScore[]
+  downloads   AdminAuditLog[]
 
   @@index([userId, computedAt])
+  @@index([assessmentId, computedAt])
   @@map("test_results")
 }
 
@@ -268,4 +327,41 @@ model ThemeScore {
   @@unique([testResultId, themeId])
   @@index([themeId, normalizedScore])
   @@map("theme_scores")
+}
+
+// ===========================================================================
+// Tracciabilità delle azioni amministrative su dati personali
+// ===========================================================================
+
+enum AdminAction {
+  REPORT_DOWNLOAD
+  RESULTS_EXPORT
+  USER_CREATED
+  ROLE_CHANGED
+}
+
+/// Un report descrive preferenze e stile di lavoro di una persona: ogni accesso
+/// da parte di un amministratore viene registrato, così l'interessato può
+/// sapere chi ha visto cosa.
+model AdminAuditLog {
+  id           String      @id @default(cuid())
+  action       AdminAction
+  /// Amministratore che ha compiuto l'azione.
+  actorId      String
+  actorEmail   String
+  /// Utente a cui si riferiscono i dati toccati, quando applicabile.
+  subjectId    String?
+  subjectEmail String?
+  /// Report scaricato, quando l'azione è un download.
+  testResultId String?
+  /// Dettaglio leggibile dell'azione.
+  detail       String?
+
+  createdAt DateTime @default(now())
+
+  testResult TestResult? @relation(fields: [testResultId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([subjectId])
+  @@map("admin_audit_logs")
 }

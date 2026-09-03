@@ -54,8 +54,10 @@ export async function completeTestAction(testSessionId: string): Promise<Complet
   }
 }
 
-export async function restartTestAction() {
+export async function restartTestAction(formData: FormData) {
   const user = await requireUser('/questionario');
-  await resetInProgressSession(user.id);
-  revalidatePath('/questionario');
+  const slug = String(formData.get('assessment') ?? '');
+  if (!slug) return;
+  await resetInProgressSession(user.id, slug);
+  revalidatePath(`/questionario/${slug}`);
 }

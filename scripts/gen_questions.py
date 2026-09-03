@@ -1,277 +1,264 @@
 # -*- coding: utf-8 -*-
-"""Genera src/content/questions.ts: design a confronto a coppie completo.
+"""Genera src/content/questions.ts: le banche di item dei quattro assessment.
 
-12 temi -> C(12,2) = 66 item. Ogni tema compare esattamente 11 volte,
-con 11 affermazioni distinte (una per item) per evitare ripetizioni.
-L'ordine di somministrazione e' costruito per:
-  - evitare che due item consecutivi condividano un tema
-  - bilanciare le comparse a sinistra/destra di ogni tema (anti side-bias)
+Le affermazioni vivono in scripts/statements/*.json (dati versionati e
+rivedibili); questo script si limita ad assemblarle in item a confronto di
+coppie, bilanciando il design.
+
+Due schemi di costruzione, a seconda del numero di temi:
+
+  - ROUND-ROBIN COMPLETO (12 temi -> 66 item): ogni coppia di temi viene
+    confrontata esattamente una volta. Possibile solo con pochi temi, perche'
+    il numero di item cresce con il quadrato: con 34 temi servirebbero 561 item.
+
+  - DESIGN CIRCOLANTE (34 temi): i temi sono disposti in cerchio e si generano
+    le coppie (i, i+d) per ogni tema i e per ogni scarto d di un insieme scelto.
+    Ogni scarto produce 34 coppie e fa comparire ogni tema esattamente 2 volte,
+    quindi k scarti danno 34k item con 2k comparse per tema. Il risultato e' un
+    disegno perfettamente bilanciato: nessun tema ha piu' occasioni di altri.
+
+In entrambi i casi si controllano poi:
+  - l'ordine: due item consecutivi non condividono un tema, cosi' chi risponde
+    non percepisce di essere interrogato due volte di fila sullo stesso tratto;
+  - il lato: ogni tema compare a sinistra circa nella meta' dei suoi item, per
+    neutralizzare la tendenza a preferire sistematicamente un lato (side bias).
 """
-import itertools, json, random
+import itertools
+import json
+import os
+import random
 
-POOLS = {
-"realizzatore": [
- "Sento il bisogno di chiudere qualcosa di concreto ogni singolo giorno",
- "A fine settimana misuro il mio valore da quanto ho prodotto",
- "Il lavoro arretrato mi toglie serenita' finche' non lo smaltisco",
- "Preferisco una giornata piena a una giornata leggera",
- "Mi metto al lavoro subito, anche se l'obiettivo non e' ancora perfetto",
- "Trovo energia nel guardare la lista delle cose che ho completato",
- "Faccio fatica a stare fermo quando c'e' ancora qualcosa da finire",
- "Mi assegno obiettivi personali anche quando nessuno me li chiede",
- "Un ritmo di lavoro costante e' cio' che mi fa sentire in forma",
- "Anche nel tempo libero mi piace portare a termine qualche progetto",
- "Giudico una riunione da quante decisioni operative ne escono",
-],
-"organizzazione": [
- "Amo pianificare ogni dettaglio prima di iniziare",
- "Ho bisogno di un metodo chiaro per lavorare bene",
- "Le scadenze scritte in calendario mi danno sicurezza",
- "Metto in ordine le informazioni prima ancora di analizzarle",
- "Costruisco procedure per non dover ridecidere ogni volta",
- "I cambi di programma mi infastidiscono piu' dei problemi tecnici",
- "I miei file e i miei spazi seguono una logica precisa",
- "Preferisco un piano imperfetto a nessun piano",
- "Divido ogni progetto in fasi con responsabili e date",
- "Arrivo puntuale perche' ho previsto i tempi in anticipo",
- "Mi rassicura sapere in anticipo come sara' la mia settimana",
-],
-"responsabilita": [
- "Quando prometto qualcosa, per me diventa un obbligo morale",
- "Se un lavoro esce male, sento che la responsabilita' e' comunque mia",
- "Preferisco fare tardi piuttosto che consegnare qualcosa di incompleto",
- "Gli altri mi affidano le cose importanti perche' sanno che le concludo",
- "Non riesco a lasciare un impegno a meta', anche quando non conviene",
- "Mi sento in debito finche' non ho restituito cio' che ho ricevuto",
- "Anche gli impegni presi a voce, per me, contano come contratti",
- "Preferisco sacrificarmi piuttosto che deludere chi conta su di me",
- "Controllo due volte prima di consegnare, per non lasciare errori ad altri",
- "Davanti a un problema il mio primo pensiero e' cosa potevo fare io",
- "Rispetto le regole anche quando nessuno sta guardando",
-],
-"comunicazione": [
- "Mi viene naturale spiegare le cose in modo che tutti capiscano",
- "Uso storie ed esempi concreti per far arrivare un concetto",
- "In riunione prendo la parola per chiarire il punto",
- "Mi diverte trovare la frase giusta per riassumere un'idea",
- "Preparo con cura come diro' le cose, non solo cosa diro'",
- "Parlare davanti a un pubblico mi da' energia invece che ansia",
- "Traduco volentieri il linguaggio tecnico per chi non lo conosce",
- "Mi accorgo subito quando un messaggio non e' arrivato",
- "Preferisco discutere un'idea a voce piuttosto che per iscritto",
- "Trovo soddisfazione nel rendere memorabile una presentazione",
- "Do volentieri voce alle idee del gruppo davanti agli altri",
-],
-"attivatore": [
- "Preferisco improvvisare e correggere strada facendo",
- "Dopo dieci minuti di analisi mi chiedo quando si parte",
- "Imparo molto di piu' provando che studiando",
- "Sono io a fare il primo passo quando il gruppo e' bloccato",
- "Una decisione presa oggi vale piu' di una perfetta fra un mese",
- "Le lunghe riunioni preparatorie mi tolgono energia",
- "Preferisco un prototipo grezzo a una presentazione impeccabile",
- "Mi muovo anche quando non ho tutte le informazioni",
- "Credo che sia l'azione a creare chiarezza, non la riflessione",
- "Quando un'idea mi convince, voglio testarla entro la settimana",
- "Accetto il rischio di sbagliare pur di andare piu' veloce",
-],
-"fiducia-in-se": [
- "So di poter gestire quasi qualunque situazione mi capiti",
- "Prendo decisioni difficili senza bisogno di conferme",
- "Se sono convinto di una scelta, la sostengo anche da solo",
- "Le critiche non mi fanno cambiare rotta facilmente",
- "Mi fido del mio giudizio piu' che del parere della maggioranza",
- "Nei momenti di crisi resto lucido mentre gli altri si agitano",
- "Preferisco decidere io piuttosto che aspettare un consenso",
- "Non ho bisogno di essere rassicurato per andare avanti",
- "Accetto volentieri la responsabilita' di una scelta impopolare",
- "Uso la mia bussola interna piu' dei riferimenti esterni",
- "Chiedo aiuto solo dopo aver esaurito le mie opzioni",
-],
-"empatia": [
- "Percepisco lo stato d'animo degli altri prima che lo dicano",
- "Le emozioni delle persone attorno a me mi arrivano forte",
- "Capisco come sta un collega dal tono con cui mi saluta",
- "Le persone mi confidano cose personali anche senza conoscermi bene",
- "Prima di rispondere penso a come si sentira' chi mi ascolta",
- "Mi accorgo della tensione in una stanza anche se nessuno parla",
- "Faccio fatica a restare indifferente quando qualcuno sta male",
- "Scelgo le parole con cura nei momenti delicati",
- "Riesco a mettermi nei panni anche di chi non mi somiglia",
- "Il clima emotivo del team influenza molto il mio lavoro",
- "Ascolto piu' quello che non viene detto che le parole",
-],
-"armonia": [
- "Cerco sempre il punto d'incontro fra posizioni diverse",
- "Le discussioni accese mi sembrano spesso energia sprecata",
- "Preferisco cedere su un dettaglio che incrinare un rapporto",
- "Faccio da ponte quando due colleghi non si parlano",
- "Evito di sollevare obiezioni che non siano davvero decisive",
- "Un accordo condiviso vale piu' di una decisione perfetta",
- "Mi accordo sul metodo prima di entrare nel merito",
- "Guardo prima cio' che unisce e poi cio' che divide",
- "Nei conflitti abbasso il tono invece di alzarlo",
- "Preferisco un gruppo sereno a un gruppo brillante ma teso",
- "Prima di chiudere voglio che tutti si siano sentiti ascoltati",
-],
-"sviluppatore": [
- "Vedo negli altri il potenziale che loro non vedono ancora",
- "I progressi di chi affianco mi danno piu' soddisfazione dei miei",
- "Mi ritrovo a fare da mentore anche senza un ruolo formale",
- "Ho pazienza autentica con chi impara lentamente",
- "Preferisco insegnare a fare che fare al posto di qualcuno",
- "Noto i piccoli miglioramenti delle persone e glieli dico",
- "Investo tempo su chi e' promettente anche se ora rende poco",
- "Mi piace costruire percorsi di crescita su misura",
- "Credo che quasi tutti possano migliorare, se ben accompagnati",
- "Do volentieri una seconda occasione a chi ha sbagliato",
- "Considero un successo quando chi ho formato non ha piu' bisogno di me",
-],
-"analitico": [
- "Prima di accettare una tesi chiedo su quali dati si basa",
- "Cerco sempre la causa che sta dietro a un risultato",
- "Diffido delle conclusioni tratte da pochi casi",
- "Mi piace smontare un problema nelle sue componenti",
- "Preferisco un dato verificato a un'impressione condivisa",
- "Individuo rapidamente i punti deboli di un ragionamento",
- "Non decido finche' non ho considerato le spiegazioni alternative",
- "Le scelte prese d'istinto mi mettono a disagio",
- "Trovo soddisfazione nel far tornare i conti",
- "Chiedo tempo per verificare prima di dare una risposta",
- "Un'idea entusiasmante senza prove per me resta un'ipotesi",
-],
-"ideazione": [
- "Mi entusiasmano le idee nuove piu' della loro esecuzione",
- "Collego spesso cose che sembrano non c'entrare nulla fra loro",
- "Davanti a un vincolo cerco un modo diverso di vedere il problema",
- "Genero molte alternative anche quando una soluzione c'e' gia'",
- "Mi annoio quando si ripete sempre lo stesso schema",
- "Le mie idee migliori arrivano mentre sto facendo altro",
- "Preferisco riformulare la domanda che rispondere a quella data",
- "Mi piace immaginare scenari che ancora non esistono",
- "Trovo bello un concetto anche prima di sapere se sara' utile",
- "Propongo volentieri strade che nessuno ha ancora considerato",
- "Un brainstorming mi ricarica piu' di una riunione decisionale",
-],
-"apprendimento": [
- "Mi da' energia il passaggio dal non sapere al sapere",
- "Studio volentieri argomenti che non mi servono subito",
- "Quando inizio qualcosa di nuovo mi sento nel mio elemento",
- "Accumulo corsi, letture e approfondimenti per pura curiosita'",
- "Preferisco un progetto mai fatto prima a uno che padroneggio",
- "Il cambiamento mi incuriosisce piu' di quanto mi preoccupi",
- "Provo i nuovi strumenti prima che diventino uno standard",
- "Mi piace essere principiante, anche se e' scomodo",
- "Approfondisco un tema finche' non ne capisco la struttura",
- "Chiedo 'perche' funziona cosi'?' anche fuori dal mio ruolo",
- "Cambio volentieri campo pur di imparare qualcosa di nuovo",
-],
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATEMENTS = os.path.join(ROOT, 'scripts', 'statements')
+
+# I 34 temi nell'ordine del catalogo, raggruppati per macro-area.
+DOMAINS = {
+    'EXECUTING': ['realizzatore', 'organizzazione', 'responsabilita', 'coordinatore',
+                  'valori', 'equita', 'prudenza', 'focalizzazione', 'risolutore'],
+    'INFLUENCING': ['comunicazione', 'attivatore', 'fiducia-in-se', 'assertivita',
+                    'competizione', 'massimizzatore', 'riconoscimento', 'socievolezza'],
+    'RELATIONSHIP': ['empatia', 'armonia', 'sviluppatore', 'adattabilita', 'connessione',
+                     'inclusione', 'individualizzazione', 'positivita', 'relazione'],
+    'STRATEGIC': ['analitico', 'ideazione', 'apprendimento', 'contesto', 'visione-futura',
+                  'raccolta', 'riflessione', 'strategia'],
 }
+DOMAIN_OF = {slug: d for d, slugs in DOMAINS.items() for slug in slugs}
 
-# accenti corretti (i pool sono scritti in ASCII per sicurezza di encoding)
-FIX = [("perche'","perché"),("piu'","più"),("puo'","può"),("cosi'","così"),("gia'","già"),
-       ("e' ","è "),("c'e'","c'è"),("da' ","dà "),("meta'","metà"),("responsabilita'","responsabilità"),
-       ("serenita'","serenità"),("curiosita'","curiosità"),("possibilita'","possibilità"),
-       ("liberta'","libertà"),("qualita'","qualità"),("diro'","dirò"),("percio'","perciò"),
-       ("sara'","sarà"),("verita'","verità"),("utilita'","utilità"),("faro'","farò")]
 
-def fix(s):
-    for a,b in FIX:
-        s = s.replace(a,b)
-    if s.endswith(" e'"): s = s[:-3] + " è"
-    return s
+def interleaved_order(slugs):
+    """Alterna le macro-aree, cosi' i temi vicini nel cerchio sono di aree diverse
+    e gli scarti del design circolante producono confronti fra aree diverse."""
+    buckets = [[s for s in DOMAINS[d] if s in slugs] for d in DOMAINS]
+    out = []
+    while any(buckets):
+        for b in buckets:
+            if b:
+                out.append(b.pop(0))
+    return out
 
-THEMES = list(POOLS.keys())
-assert len(THEMES) == 12
-for t,p in POOLS.items():
-    assert len(p) == 11, (t, len(p))
-    assert len(set(p)) == 11, t
 
-pairs = [tuple(sorted(p)) for p in itertools.combinations(THEMES, 2)]
-assert len(pairs) == 66
+def round_robin_pairs(slugs):
+    return [tuple(sorted(p)) for p in itertools.combinations(slugs, 2)]
 
-# --- ordinamento: nessun tema ripetuto in item consecutivi -------------------
-rnd = random.Random(20240517)
-remaining = pairs[:]
-rnd.shuffle(remaining)
-ordered = [remaining.pop(0)]
-while remaining:
-    prev = set(ordered[-1])
-    prev2 = set(ordered[-2]) if len(ordered) > 1 else set()
-    # candidato migliore: nessuna sovrapposizione con l'item precedente,
-    # e possibilmente nemmeno con quello prima ancora
-    best, best_score = None, -1
-    for i, cand in enumerate(remaining):
-        c = set(cand)
-        score = (0 if c & prev else 2) + (0 if c & prev2 else 1)
-        if score > best_score:
-            best, best_score = i, score
-        if score == 3:
-            break
-    ordered.append(remaining.pop(best))
 
-conflicts = sum(1 for i in range(1, len(ordered)) if set(ordered[i]) & set(ordered[i-1]))
+def circulant_pairs(slugs, offsets):
+    """Coppie (i, i+d) su un cerchio di temi. Ogni scarto d fa comparire ogni
+    tema due volte; scarti distinti e sotto la meta' del cerchio garantiscono
+    che nessuna coppia si ripeta."""
+    n = len(slugs)
+    assert len(set(offsets)) == len(offsets), 'scarti duplicati'
+    for d in offsets:
+        assert 0 < d < n / 2, 'lo scarto %d non e\' valido per %d temi' % (d, n)
+    pairs = []
+    for d in offsets:
+        for i in range(n):
+            pairs.append(tuple(sorted((slugs[i], slugs[(i + d) % n]))))
+    assert len(set(pairs)) == len(pairs), 'coppie duplicate'
+    return pairs
 
-# --- lati bilanciati --------------------------------------------------------
-left_count = {t: 0 for t in THEMES}
-used = {t: 0 for t in THEMES}
-items = []
-for pos, (a, b) in enumerate(ordered, start=1):
-    if left_count[a] < left_count[b]:
-        L, R = a, b
-    elif left_count[b] < left_count[a]:
-        L, R = b, a
-    else:
-        L, R = (a, b) if pos % 2 else (b, a)
-    left_count[L] += 1
-    ls = POOLS[L][used[L]]; used[L] += 1
-    rs = POOLS[R][used[R]]; used[R] += 1
-    items.append({"position": pos, "leftTheme": L, "rightTheme": R,
-                  "leftStatement": fix(ls), "rightStatement": fix(rs)})
 
-appear = {t: 0 for t in THEMES}
-for it in items:
-    appear[it["leftTheme"]] += 1
-    appear[it["rightTheme"]] += 1
+def order_pairs(pairs, seed):
+    """Ordina gli item in modo che due consecutivi non condividano un tema."""
+    rnd = random.Random(seed)
+    remaining = pairs[:]
+    rnd.shuffle(remaining)
+    ordered = [remaining.pop(0)]
+    while remaining:
+        prev = set(ordered[-1])
+        prev2 = set(ordered[-2]) if len(ordered) > 1 else set()
+        best, best_score = 0, -1
+        for i, cand in enumerate(remaining):
+            c = set(cand)
+            score = (0 if c & prev else 2) + (0 if c & prev2 else 1)
+            if score > best_score:
+                best, best_score = i, score
+            if score == 3:
+                break
+        ordered.append(remaining.pop(best))
+    return ordered
 
-lines = []
-lines.append("/* eslint-disable */")
-lines.append("// ---------------------------------------------------------------------------")
-lines.append("// FILE GENERATO da scripts/gen_questions.py — non modificare a mano.")
-lines.append("//")
-lines.append("// Design a confronto a coppie completo (complete paired-comparison):")
-lines.append("// 12 temi -> 66 item, ogni coppia di temi confrontata esattamente una volta.")
-lines.append("// Ogni tema compare in 11 item, con 11 affermazioni distinte.")
-lines.append("// Lati bilanciati (5/6 comparse a sinistra per tema) per neutralizzare il side-bias.")
-lines.append("// ---------------------------------------------------------------------------")
-lines.append("")
-lines.append("export type QuestionSeed = {")
-lines.append("  position: number;")
-lines.append("  leftStatement: string;")
-lines.append("  rightStatement: string;")
-lines.append("  leftTheme: string;")
-lines.append("  rightTheme: string;")
-lines.append("  leftWeight?: number;")
-lines.append("  rightWeight?: number;")
-lines.append("};")
-lines.append("")
-lines.append("export const QUESTIONS: QuestionSeed[] = [")
-for it in items:
-    lines.append("  {")
-    lines.append("    position: %d," % it["position"])
-    lines.append("    leftStatement: %s," % json.dumps(it["leftStatement"], ensure_ascii=False))
-    lines.append("    rightStatement: %s," % json.dumps(it["rightStatement"], ensure_ascii=False))
-    lines.append("    leftTheme: %s," % json.dumps(it["leftTheme"]))
-    lines.append("    rightTheme: %s," % json.dumps(it["rightTheme"]))
-    lines.append("  },")
-lines.append("];")
-lines.append("")
-lines.append("export const TOTAL_QUESTIONS = QUESTIONS.length;")
-lines.append("")
 
-open("src/content/questions.ts", "w", encoding="utf-8").write("\n".join(lines))
+def assign_sides(ordered, slugs):
+    """Decide quale tema va a sinistra in ciascun item.
 
-print("items:", len(items))
-print("adiacenze con tema condiviso:", conflicts)
-print("comparse per tema:", sorted(set(appear.values())))
-print("comparse a sinistra:", sorted(set(left_count.values())))
+    Prima passata greedy, poi raffinamento: si scambiano i lati degli item
+    finche' lo scambio riduce lo sbilanciamento complessivo. L'obiettivo e' che
+    ogni tema compaia a sinistra in meta' esatta dei propri item.
+    """
+    appearances = {s: 0 for s in slugs}
+    for a, b in ordered:
+        appearances[a] += 1
+        appearances[b] += 1
+    target = {s: appearances[s] / 2 for s in slugs}
+
+    left_count = {s: 0 for s in slugs}
+    sides = []
+    for position, (a, b) in enumerate(ordered, start=1):
+        if left_count[a] < left_count[b]:
+            pair = (a, b)
+        elif left_count[b] < left_count[a]:
+            pair = (b, a)
+        else:
+            pair = (a, b) if position % 2 else (b, a)
+        left_count[pair[0]] += 1
+        sides.append(pair)
+
+    def imbalance():
+        return sum(abs(left_count[s] - target[s]) for s in slugs)
+
+    improved = True
+    while improved:
+        improved = False
+        for i, (left, right) in enumerate(sides):
+            before = abs(left_count[left] - target[left]) + abs(left_count[right] - target[right])
+            after = (abs(left_count[left] - 1 - target[left])
+                     + abs(left_count[right] + 1 - target[right]))
+            if after < before:
+                left_count[left] -= 1
+                left_count[right] += 1
+                sides[i] = (right, left)
+                improved = True
+
+    return sides, left_count
+
+
+def build_bank(key, slugs, pairs, pool, seed):
+    ordered = order_pairs(pairs, seed)
+    sides, left_count = assign_sides(ordered, slugs)
+
+    used = {s: 0 for s in slugs}
+    items = []
+    for position, (left, right) in enumerate(sides, start=1):
+        for slug in (left, right):
+            if used[slug] >= len(pool[slug]):
+                raise SystemExit(
+                    'Affermazioni insufficienti per "%s" nella banca %s: ne servono %d'
+                    % (slug, key, used[slug] + 1))
+        ls = pool[left][used[left]]
+        used[left] += 1
+        rs = pool[right][used[right]]
+        used[right] += 1
+        items.append({'position': position, 'leftTheme': left, 'rightTheme': right,
+                      'leftStatement': ls, 'rightStatement': rs})
+
+    appearances = {s: 0 for s in slugs}
+    for it in items:
+        appearances[it['leftTheme']] += 1
+        appearances[it['rightTheme']] += 1
+    adjacent = sum(1 for i in range(1, len(ordered))
+                   if set(ordered[i]) & set(ordered[i - 1]))
+    cross_domain = sum(1 for it in items
+                       if DOMAIN_OF[it['leftTheme']] != DOMAIN_OF[it['rightTheme']])
+
+    return items, {
+        'items': len(items),
+        'appearances': sorted(set(appearances.values())),
+        'left': sorted(set(left_count.values())),
+        'adjacent_conflicts': adjacent,
+        'cross_domain_pct': round(100 * cross_domain / len(items)),
+    }
+
+
+def load(name):
+    with open(os.path.join(STATEMENTS, name), encoding='utf-8') as fh:
+        return json.load(fh)
+
+
+BANKS = []
+
+# --- core12: round-robin completo, 66 item -----------------------------------
+core_pool = load('core12.json')
+core_slugs = interleaved_order(list(core_pool))
+BANKS.append(('core12', core_slugs, round_robin_pairs(core_slugs), core_pool, 20240517))
+
+# --- banche a 34 temi: design circolante -------------------------------------
+# Scarti diversi per banca: i tre assessment confrontano coppie di temi diverse,
+# quindi non sono lo stesso questionario con parole diverse.
+#
+# Vincolo sulla scelta degli scarti: i temi sono disposti alternando le quattro
+# macro-aree, quindi lo scarto d modulo 4 determina QUALE coppia di aree viene
+# confrontata. Servono perciò quattro scarti con residui mod 4 tutti diversi,
+# altrimenti alcune coppie di aree restano sotto-campionate e i temi che vi
+# appartengono vengono stimati peggio (verificato con scripts/simulate.ts:
+# una banca con residui duplicati perdeva 2 posizioni su 7 nella Top K).
+full_pool = load('general34.json')
+full_slugs = interleaved_order(list(full_pool))
+BANKS.append(('full34', full_slugs, circulant_pairs(full_slugs, [1, 6, 11, 16]), full_pool, 7717))
+
+lead_pool = load('leaders34.json')
+BANKS.append(('leaders', full_slugs, circulant_pairs(full_slugs, [2, 7, 9, 12]), lead_pool, 3313))
+
+mgr_pool = load('managers34.json')
+BANKS.append(('managers', full_slugs, circulant_pairs(full_slugs, [3, 8, 13, 14]), mgr_pool, 9091))
+
+
+out = ['/* eslint-disable */',
+       '// ---------------------------------------------------------------------------',
+       '// FILE GENERATO da scripts/gen_questions.py — non modificare a mano.',
+       '// Le affermazioni sono in scripts/statements/*.json.',
+       '// ---------------------------------------------------------------------------',
+       '',
+       'export type QuestionSeed = {',
+       '  position: number;',
+       '  leftStatement: string;',
+       '  rightStatement: string;',
+       '  leftTheme: string;',
+       '  rightTheme: string;',
+       '  leftWeight?: number;',
+       '  rightWeight?: number;',
+       '};',
+       '',
+       'export type QuestionBankKey = ' + ' | '.join("'%s'" % k for k, *_ in BANKS) + ';',
+       '']
+
+summary = {}
+for key, slugs, pairs, pool, seed in BANKS:
+    items, stats = build_bank(key, slugs, pairs, pool, seed)
+    summary[key] = stats
+    out.append('/** %d item · %d temi · %d comparse per tema */'
+               % (stats['items'], len(slugs), stats['appearances'][0]))
+    out.append('const %s: QuestionSeed[] = [' % key.upper())
+    for it in items:
+        out.append('  {')
+        out.append('    position: %d,' % it['position'])
+        out.append('    leftStatement: %s,' % json.dumps(it['leftStatement'], ensure_ascii=False))
+        out.append('    rightStatement: %s,' % json.dumps(it['rightStatement'], ensure_ascii=False))
+        out.append('    leftTheme: %s,' % json.dumps(it['leftTheme']))
+        out.append('    rightTheme: %s,' % json.dumps(it['rightTheme']))
+        out.append('  },')
+    out.append('];')
+    out.append('')
+
+out.append('export const QUESTION_BANKS: Record<QuestionBankKey, QuestionSeed[]> = {')
+for key, *_ in BANKS:
+    out.append('  %s: %s,' % (key, key.upper()))
+out.append('};')
+out.append('')
+
+with open(os.path.join(ROOT, 'src', 'content', 'questions.ts'), 'w', encoding='utf-8') as fh:
+    fh.write('\n'.join(out))
+
+for key, stats in summary.items():
+    print('%-9s %3d item | comparse/tema %s | a sinistra %s | adiacenze %d | cross-area %d%%'
+          % (key, stats['items'], stats['appearances'], stats['left'],
+             stats['adjacent_conflicts'], stats['cross_domain_pct']))

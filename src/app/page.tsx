@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { ButtonLink } from '@/components/ui/button';
 import { DOMAIN_META, DOMAIN_ORDER, THEMES } from '@/content/themes';
-import { TOTAL_QUESTIONS } from '@/content/questions';
+import { ASSESSMENTS } from '@/content/assessments';
 import { getCurrentUser } from '@/server/guards';
 
 export default async function HomePage() {
@@ -42,7 +42,7 @@ export default async function HomePage() {
         <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
           <div className="max-w-2xl">
             <p className="text-sm font-medium text-brand-700">
-              Questionario psicometrico · {TOTAL_QUESTIONS} item · circa 20 minuti
+              {ASSESSMENTS.length} questionari psicometrici · da 22 a 45 minuti
             </p>
             <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-ink-900 sm:text-5xl">
               Scopri dove sei già forte, invece di rincorrere ciò che ti manca.
@@ -71,7 +71,7 @@ export default async function HomePage() {
               <Step
                 number={1}
                 title="Rispondi d’istinto"
-                text={`${TOTAL_QUESTIONS} coppie di affermazioni opposte, con un timer di 20 secondi per item. Il tempo serve a far emergere la reazione spontanea invece della risposta costruita.`}
+                text="Coppie di affermazioni opposte, con un timer di 20 secondi per item. Il tempo serve a far emergere la reazione spontanea invece della risposta costruita."
               />
               <Step
                 number={2}
@@ -84,6 +84,25 @@ export default async function HomePage() {
                 text="Top 5 dei talenti, bilanciamento fra le macro-aree, punti di forza e punti ciechi di ciascun tema. Esportabile in PDF."
               />
             </ol>
+          </div>
+        </section>
+
+        {/* ---------------- I questionari ---------------- */}
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+          <h2 className="text-2xl font-semibold tracking-tight text-ink-900">I questionari</h2>
+          <p className="mt-2 max-w-2xl text-ink-600">
+            Quattro strumenti distinti, ciascuno con la propria banca di domande e la propria
+            lente di lettura del report.
+          </p>
+
+          <div className="mt-8 grid gap-5 sm:grid-cols-2">
+            {ASSESSMENTS.map((a) => (
+              <div key={a.slug} className="card p-6">
+                <h3 className="font-semibold text-ink-900">{a.name}</h3>
+                <p className="mt-1 text-sm text-ink-500">{a.subtitle}</p>
+                <p className="mt-3 text-sm leading-relaxed text-ink-600">{a.description}</p>
+              </div>
+            ))}
           </div>
         </section>
 

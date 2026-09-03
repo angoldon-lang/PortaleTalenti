@@ -1,103 +1,64 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 
 import { AppShell } from '@/components/app-shell';
-import { Button, ButtonLink } from '@/components/ui/button';
-import { QuestionnaireRunner } from '@/components/questionnaire/questionnaire-runner';
+import { ButtonLink } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LENS_META } from '@/content/assessments';
 import { requireUser } from '@/server/guards';
-import { getLatestReport, getOrCreateTestSession } from '@/server/test-service';
-import { restartTestAction } from '@/server/test-actions';
+import { listAssessmentsForUser } from '@/server/test-service';
 
-export const metadata: Metadata = { title: 'Questionario' };
+export const metadata: Metadata = { title: 'Questionari' };
 
-export default async function QuestionnairePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ start?: string }>;
-}) {
+export default async function AssessmentPickerPage() {
   const user = await requireUser('/questionario');
-  const [{ start }, state, existingReport] = await Promise.all([
-    searchParams,
-    getOrCreateTestSession(user.id),
-    getLatestReport(user.id),
-  ]);
-
-  const showIntro = start !== '1' && state.answeredCount === 0;
-  const estimatedMinutes = Math.ceil((state.totalQuestions * (state.timerSeconds || 15)) / 60);
+  const assessments = await listAssessmentsForUser(user.id);
 
   return (
     <AppShell user={{ ...user, role: user.role ?? 'USER' }}>
-      {showIntro ? (
-        <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-          <h1 className="text-3xl font-semibold tracking-tight text-ink-900">
-            Prima di iniziare
-          </h1>
-          <p className="mt-3 text-ink-600">
-            Ti mostreremo {state.totalQuestions} coppie di affermazioni. Per ciascuna scegli
-            quanto ti descrive l’una rispetto all’altra. Servono circa {estimatedMinutes} minuti.
-          </p>
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+        <h1 className="text-3xl font-semibold tracking-tight text-ink-900">Scegli il questionario</h1>
+        <p className="mt-2 max-w-2xl text-ink-600">
+          Quattro strumenti distinti, ciascuno con le proprie domande. Se è la prima volta, parti da
+          Talenti Essenziale; se vuoi la classifica completa dei 34 temi, scegli CliftonStrengths 34.
+        </p>
 
-          <ul className="mt-8 space-y-4">
-            <Tip title="Rispondi d’istinto">
-              {state.timerSeconds > 0
-                ? `Hai ${state.timerSeconds} secondi per domanda. La prima reazione è quasi sempre la più
-                   fedele: il tempo serve proprio a impedire la risposta "giusta" costruita a tavolino.`
-                : 'La prima reazione è quasi sempre la più fedele. Non ragionare troppo su ogni item.'}
-            </Tip>
-            <Tip title="Non esistono risposte migliori">
-              Nessun profilo vale più di un altro. Il report descrive come funzioni, non quanto vali.
-            </Tip>
-            <Tip title="Puoi interrompere quando vuoi">
-              Ogni risposta viene salvata subito. Se chiudi la pagina, riprendi dallo stesso punto.
-            </Tip>
-            <Tip title="Pensa al tuo comportamento reale">
-              Non a come vorresti essere o a ciò che il tuo ruolo richiede: a ciò che fai davvero.
-            </Tip>
-          </ul>
+        <div className="mt-8 grid gap-5 sm:grid-cols-2">
+          {assessments.map((a) => {
+            const inProgress = a.progress;
+            return (
+              <Card key={a.id} className="flex flex-col">
+                <CardHeader>
+                  <span className="text-xs font-medium uppercase tracking-wide text-brand-700">
+                    {LENS_META[a.lens].label}
+                  </span>
+                  <CardTitle className="mt-1">{a.name}</CardTitle>
+                  <p className="mt-1 text-sm text-ink-500">{a.subtitle}</p>
+                </CardHeader>
+                <CardContent className="flex flex-1 flex-col pt-0">
+                  <p className="flex-1 text-sm leading-relaxed text-ink-600">{a.description}</p>
 
-          <div className="mt-10 flex flex-wrap gap-3">
-            <ButtonLink href="/questionario?start=1" size="lg">
-              Inizia il questionario
-            </ButtonLink>
-            {existingReport && (
-              <ButtonLink href="/dashboard" variant="secondary" size="lg">
-                Torna al mio report
-              </ButtonLink>
-            )}
-          </div>
+                  {inProgress && (
+                    <p className="mt-4 rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-900">
+                      Compilazione in corso: {inProgress.answeredCount}/{inProgress.totalQuestions}
+                    </p>
+                  )}
+
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    <ButtonLink href={`/questionario/${a.slug}${inProgress ? '?start=1' : ''}`}>
+                      {inProgress ? 'Riprendi' : a.result ? 'Rifai il test' : 'Inizia'}
+                    </ButtonLink>
+                    {a.result && (
+                      <ButtonLink href={`/report/${a.result.id}`} variant="secondary">
+                        Vedi il report
+                      </ButtonLink>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
-      ) : (
-        <>
-          <QuestionnaireRunner state={state} />
-          <div className="mx-auto max-w-3xl px-4 pb-16 text-center sm:px-6">
-            <form action={restartTestAction}>
-              <Button
-                type="submit"
-                variant="ghost"
-                size="sm"
-                className="text-ink-400 hover:text-ink-700"
-              >
-                Ricomincia il questionario da capo
-              </Button>
-            </form>
-            <p className="mt-2 text-xs text-ink-400">
-              Le risposte già date verranno eliminate.{' '}
-              <Link href="/dashboard" className="underline underline-offset-2">
-                Torna alla dashboard
-              </Link>
-            </p>
-          </div>
-        </>
-      )}
+      </div>
     </AppShell>
-  );
-}
-
-function Tip({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <li className="rounded-2xl border border-ink-200/70 bg-white p-5">
-      <h2 className="font-semibold text-ink-900">{title}</h2>
-      <p className="mt-1.5 text-sm leading-relaxed text-ink-600">{children}</p>
-    </li>
   );
 }
