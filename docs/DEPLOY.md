@@ -57,6 +57,13 @@ npm run build     # esegue prisma generate e poi next build
 npm start
 ```
 
+`prisma generate` è dentro `build` (e anche dentro `dev` e `db:seed`) proprio
+perché `migrate deploy` aggiorna il database ma non il client: se i due
+divergono l'app parte e fallisce a runtime con
+`Cannot read properties of undefined (reading 'findMany')`. Se nella tua
+pipeline esegui `next build` direttamente, aggiungi `npx prisma generate`
+prima.
+
 Su Vercel il comando di build predefinito va già bene. Il route handler del PDF
 richiede il runtime Node: è dichiarato `export const runtime = 'nodejs'` e
 `@react-pdf/renderer` è in `serverExternalPackages`, quindi non serve altra

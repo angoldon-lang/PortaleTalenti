@@ -182,10 +182,18 @@ completa l'accesso: l'app funziona comunque con email e password.
 ```bash
 git pull
 npm install                   # nuove dipendenze, se ce ne sono
+npx prisma generate           # riallinea il client Prisma allo schema
 npx prisma migrate deploy     # applica le migrazioni mancanti
 npm run db:seed               # aggiorna temi, questionari e item
 npm run build && npm start    # oppure npm run dev
 ```
+
+`prisma generate` è il passo che si dimentica più facilmente: `migrate deploy`
+aggiorna il **database** ma non il **client** TypeScript, e se i due divergono
+l'app parte e poi fallisce a runtime con `Cannot read properties of undefined
+(reading 'findMany')`. Per questo `npm run dev`, `npm run build` e
+`npm run db:seed` lo eseguono già da soli: la riga qui sopra serve solo se
+lanci i comandi in un altro modo.
 
 Le migrazioni **preservano i dati**: le compilazioni e i report già esistenti
 restano al loro posto. Se aggiorni da una versione precedente all'introduzione
@@ -266,6 +274,9 @@ fatta insieme all'upgrade a Prisma 7.
 | `MissingSecret` / errore su `/login` | `AUTH_SECRET` vuoto in `.env`: genera con `openssl rand -base64 32` |
 | Il pulsante Google non completa l'accesso | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` non compilati. L'accesso con email e password funziona comunque |
 | `Cannot find module '.prisma/client/default'` | il postinstall di `@prisma/client` non è stato eseguito (npm con `allowScripts` attivo): lancia `npx prisma generate` |
+| `Cannot read properties of undefined (reading 'findMany')` oppure `Unknown field ... for select statement` | il client Prisma è più vecchio dello schema: hai applicato le migrazioni senza rigenerarlo. `npx prisma generate`, poi riavvia il server |
+| `Detected additional lockfiles` | hai due checkout annidati (es. `PortaleTalenti/PortaleTalenti`): è solo un avviso di Next, ma assicurati di lanciare i comandi nella cartella giusta |
+| `Cross origin request detected` in sviluppo | stai aprendo l'app dall'IP di rete invece che da `localhost`: è un avviso innocuo, oppure aggiungi `allowedDevOrigins` in `next.config.mjs` |
 | `process.loadEnvFile is not a function` durante il seed | Node più vecchio di 20.12: aggiorna Node |
 | Porta 3000 occupata | `npm run dev -- -p 3001` (e allinea `AUTH_URL`) |
 
