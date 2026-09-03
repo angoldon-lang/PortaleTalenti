@@ -231,6 +231,13 @@ dei questionari multipli, le vecchie compilazioni vengono ricollegate
 automaticamente a *Talenti Essenziale*, che è il questionario che avevano
 effettivamente usato — verificato su un database con report reali.
 
+L'introduzione della Mappa dei Punti di Forza è **puramente additiva**: aggiunge
+tabelle e colonne, non ne riscrive nessuna. Dopo il seed compaiono quattro
+questionari nuovi accanto ai quattro esistenti, e i ruoli organizzativi
+predefiniti passano a richiedere quelli nuovi lasciando i vecchi abilitati ma
+facoltativi. Anche questo è stato verificato su una copia del database di
+sviluppo con report reali: nulla di già compilato viene toccato.
+
 Il seed è idempotente (`upsert` su `slug` e su `assessment + posizione`):
 rilanciarlo aggiorna i contenuti senza duplicare né cancellare risposte.
 

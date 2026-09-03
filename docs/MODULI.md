@@ -47,15 +47,27 @@ accede ai report altrui: `getReportById()` filtra sempre per `userId`.
 
 | File | Ruolo |
 | --- | --- |
-| `src/app/questionario/page.tsx` | catalogo dei quattro questionari, con lo stato di avanzamento |
-| `src/app/questionario/[slug]/page.tsx` | schermata introduttiva e avvio/ripresa di un questionario |
-| `src/components/questionnaire/questionnaire-runner.tsx` | il client component che gestisce l'esecuzione |
+| `src/app/questionario/page.tsx` | catalogo dei questionari abilitati, con lo stato di avanzamento |
+| `src/app/questionario/[slug]/page.tsx` | schermata introduttiva e avvio/ripresa; sceglie il componente in base al formato |
+| `src/components/questionnaire/questionnaire-runner.tsx` | esecuzione dei questionari a coppie di affermazioni |
+| `src/components/questionnaire/block-runner.tsx` | esecuzione dei questionari a blocchi quartetto |
 | `src/components/questionnaire/likert-scale.tsx` | scala a 7 punti come radiogroup nativo |
-| `src/components/questionnaire/timer-ring.tsx` | anello di countdown |
-| `src/server/test-service.ts` | creazione/ripresa sessione, salvataggio risposta, completamento |
-| `src/server/test-actions.ts` | Server Actions chiamate dal client |
+| `src/components/questionnaire/timer-ring.tsx` | anello di countdown, comune ai due formati |
+| `src/server/test-service.ts` | sessione, risposta e completamento per il formato a coppie |
+| `src/server/mpf-service.ts` | gli stessi passaggi per il formato a scelta forzata |
+| `src/server/test-actions.ts` | Server Actions chiamate dal client, per entrambi i formati |
 
-**Quattro questionari.** Il catalogo vive nella tabella `assessments`: ciascuno
+**Due formati di item.** `Assessment.itemFormat` distingue i questionari a
+coppie di affermazioni su scala (`PAIRED_LIKERT`) da quelli a blocchi quartetto
+con scelta «di più» / «di meno» (`FORCED_CHOICE_QUARTET`). Sono due servizi
+separati e non due rami dentro lo stesso: item, risposte e punteggi sono
+diversi, e un'unica funzione che si biforca a ogni passaggio sarebbe più
+difficile da leggere di due funzioni ciascuna coerente con sé. Restano condivise
+le regole che dal formato non dipendono — chi può compilare che cosa, e
+"ricomincia da capo", che cancella la sessione e con essa, per vincolo di chiave
+esterna, le risposte di qualunque formato.
+
+**Otto questionari.** Il catalogo vive nella tabella `assessments`: ciascuno
 ha la propria banca di item (`questions.assessmentId`), il proprio `topCount` e la
 propria lente di report. Una persona può compilarli tutti: le sessioni e i
 risultati sono per assessment, quindi i profili non si sovrappongono.
@@ -79,10 +91,22 @@ sessione e le risposte già date. Al rientro `getOrCreateTestSession()` calcola
 `resumeIndex` come primo item senza risposta. Chiudere il browser, cambiare
 dispositivo o perdere la connessione non costa nulla.
 
-**Accessibilità.** La scala è un `<fieldset>` di radio nativi, quindi navigabile
-con le frecce; le scorciatoie `1`-`7` rispondono da tastiera; l'avanzamento è un
-`role="progressbar"` con valori ARIA; ogni pallino ha un'etichetta testuale
-completa per gli screen reader.
+**Accessibilità.** Nel formato a coppie la scala è un `<fieldset>` di radio
+nativi, quindi navigabile con le frecce; le scorciatoie `1`-`7` rispondono da
+tastiera. Nel formato a blocchi le due scelte sono due gruppi di radio distinti,
+uno per colonna: chi naviga da tastiera o con uno screen reader incontra così
+due domande separate e chiare — «quale ti descrive di più», «quale di meno» —
+invece di una griglia da interpretare, e ogni radio porta l'affermazione per
+intero nella propria etichetta. I tasti `1`-`4` assegnano la scelta ancora
+mancante, nell'ordine in cui la pagina le chiede. In entrambi i formati
+l'avanzamento è un `role="progressbar"` con valori ARIA.
+
+**Il tempo scaduto.** I due formati lo trattano in modo diverso, e
+intenzionalmente. Sulla scala il valore neutro esiste ed è il centro, quindi un
+item scaduto viene salvato lì. Nella scelta forzata un valore neutro non c'è:
+il blocco resta senza scelte, pesa sull'indice di attendibilità e non sui
+punteggi. Riempirlo significherebbe attribuire alla persona una preferenza che
+non ha espresso.
 
 ---
 
@@ -91,12 +115,18 @@ completa per gli screen reader.
 Schema completo in `prisma/schema.prisma`.
 
 ```
-assessments ──── questions ──┬── talent_themes (lato sinistro)
-     │                       └── talent_themes (lato destro)
+                             ┌── questions ──┬── talent_themes (lato sinistro)
+assessments ─────────────────┤               └── talent_themes (lato destro)
+     │                       └── choice_blocks ──── choice_options ──── strength_traits
+     │                                                                        │
+     │                                                          strength_areas┘
      │
 users ──┬── accounts / sessions            (Auth.js)
-        ├── test_sessions ──── responses ──── questions
-        │         └── test_results ──── theme_scores ──── talent_themes
+        ├── test_sessions ──┬── responses ──── questions
+        │                   ├── block_responses ──── choice_blocks
+        │                   └── test_results ──┬── theme_scores ──── talent_themes
+        │                                      ├── trait_scores ──── strength_traits
+        │                                      └── area_scores  ──── strength_areas
         └── admin_audit_logs (come attore o come interessato)
 ```
 
@@ -131,13 +161,23 @@ restituisce invece di ricalcolarlo, quindi un doppio click non genera due report
 | --- | --- |
 | `src/app/dashboard/page.tsx` | hub personale: i report completati e i questionari disponibili |
 | `src/app/report/[id]/page.tsx` | un report, con la lente del suo assessment |
-| `src/components/report/report-view.tsx` | il corpo del report, condiviso fra le lenti |
-| `src/components/report/domain-charts.tsx` | ciambella delle macro-aree e radar dei 12 temi |
-| `src/components/report/talent-card.tsx` | scheda espandibile di un talento |
+| `src/components/report/report-model.ts` | riconduce i risultati delle due metodologie a un modello di vista comune |
+| `src/components/report/report-view.tsx` | il corpo del report, condiviso fra le lenti e fra le metodologie |
+| `src/components/report/domain-charts.tsx` | ciambella delle macro-aree e radar delle singole voci |
+| `src/components/report/talent-card.tsx` | scheda espandibile di un tema o di un tratto |
+| `src/components/ui/group-badge.tsx` | etichetta di macro-area, colorata a partire dal colore dell'area |
 | `src/lib/pdf-report.tsx` | il documento PDF |
 | `src/app/api/report/[id]/pdf/route.tsx` | endpoint di download |
 
-**Le quattro lenti.** L'`Assessment.lens` decide quanti temi mettere in evidenza
+**Una sola strada di disegno.** I due modelli del portale producono report della
+stessa forma — un bilanciamento fra macro-aree, una classifica, delle schede di
+dettaglio — e quella forma merita un solo modo di essere disegnata.
+`report-model.ts` riconduce entrambi i risultati a una struttura comune; da lì
+in avanti pagina e PDF ricevono aree e voci, e non sanno più da quale
+metodologia arrivino. Anche i grafici prendono le macro-aree dai dati, quante
+che siano, invece che da un elenco fisso di quattro.
+
+**Le lenti.** L'`Assessment.lens` decide quanti temi mettere in evidenza
 e quale sezione aggiuntiva compare in ciascuna scheda: *for Leaders* mostra
 «Quando guidi», *for Managers* «Nella gestione del team». Gli stessi testi
 finiscono nel PDF, in un riquadro dedicato.

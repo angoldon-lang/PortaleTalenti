@@ -1,5 +1,11 @@
 # Il modello: temi, questionario e algoritmo
 
+> **Questo documento descrive il modello precedente**, quello dei quattro domini
+> e dei trentaquattro temi, che resta attivo nel portale per chi lo ha già
+> compilato. Il modello proprietario corrente — cinque macro-aree, trenta
+> tratti, blocchi a scelta forzata — è descritto in
+> [`MAPPA-PUNTI-DI-FORZA.md`](MAPPA-PUNTI-DI-FORZA.md).
+
 Documento di riferimento per chi deve capire *cosa misura* il portale e *come*.
 
 ---
