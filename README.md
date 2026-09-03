@@ -177,6 +177,46 @@ completa l'accesso: l'app funziona comunque con email e password.
 
 ---
 
+## Aggiornare un'installazione esistente
+
+```bash
+git pull
+npm install                   # nuove dipendenze, se ce ne sono
+npx prisma migrate deploy     # applica le migrazioni mancanti
+npm run db:seed               # aggiorna temi, questionari e item
+npm run build && npm start    # oppure npm run dev
+```
+
+Le migrazioni **preservano i dati**: le compilazioni e i report già esistenti
+restano al loro posto. Se aggiorni da una versione precedente all'introduzione
+dei questionari multipli, le vecchie compilazioni vengono ricollegate
+automaticamente a *Talenti Essenziale*, che è il questionario che avevano
+effettivamente usato — verificato su un database con report reali.
+
+Il seed è idempotente (`upsert` su `slug` e su `assessment + posizione`):
+rilanciarlo aggiorna i contenuti senza duplicare né cancellare risposte.
+
+Se il server era già avviato, riavvialo: i contenuti dei temi sono letti dal
+database a ogni richiesta, ma il codice no.
+
+### Se una migrazione si interrompe
+
+Prisma segna la migrazione come fallita e blocca le successive (`P3018`).
+Risolvi la causa e poi:
+
+```bash
+npx prisma migrate resolve --rolled-back <nome_migrazione>
+npx prisma migrate deploy
+```
+
+Fai un backup prima di aggiornare un database che contiene dati reali:
+
+```bash
+pg_dump -Fc "$DATABASE_URL" > backup-$(date +%F).dump
+```
+
+---
+
 ## Comandi
 
 | Comando | Cosa fa |

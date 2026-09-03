@@ -10,8 +10,26 @@ DATABASE_URL="postgresql://…" npx prisma migrate deploy
 DATABASE_URL="postgresql://…" SEED_DEMO_USERS=false npm run db:seed
 ```
 
-Il seed è idempotente (`upsert` su `slug` e `position`): rilanciarlo dopo una
-modifica ai contenuti aggiorna temi e item senza toccare le risposte raccolte.
+Il seed è idempotente (`upsert` su `slug` e su `assessment + posizione`):
+rilanciarlo dopo una modifica ai contenuti aggiorna temi, questionari e item
+senza toccare le risposte raccolte.
+
+**Aggiornamento di un'istanza già in esercizio.** Le migrazioni sono scritte per
+preservare i dati: quella che introduce i questionari multipli aggiunge le
+colonne come nullable, ricollega le compilazioni preesistenti a *Talenti
+Essenziale* e solo dopo impone il vincolo. Un `migrate deploy` su un database
+popolato è stato verificato su una copia con report reali: le compilazioni, le
+risposte e i punteggi per tema restano intatti.
+
+Fai comunque un backup prima:
+
+```bash
+pg_dump -Fc "$DATABASE_URL" > backup-$(date +%F).dump
+```
+
+Se una migrazione si interrompe a metà, Prisma la segna come fallita e blocca le
+successive (`P3018`): risolvi la causa, poi
+`npx prisma migrate resolve --rolled-back <nome>` e ripeti `migrate deploy`.
 
 `SEED_DEMO_USERS=false` evita di creare gli account demo in produzione.
 
