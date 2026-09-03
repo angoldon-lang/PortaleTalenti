@@ -105,6 +105,13 @@ disegno circolante (vedi [`MODELLO.md`](MODELLO.md) §3.3). Verifica sempre con
 `npx tsx scripts/simulate.ts` che l'algoritmo continui a ricostruire un profilo
 noto su tutti e quattro i questionari.
 
+**Ruoli organizzativi.** I quattro ruoli del seed si modificano dal pannello.
+Se ne vuoi altri, aggiungili in `src/content/org-roles.ts` e rilancia il seed:
+l'upsert è su `slug`, quindi le abilitazioni già personalizzate dal pannello
+vengono riportate ai valori del file. Se hai personalizzato le abilitazioni e non
+vuoi perderle, crea i nuovi ruoli direttamente in database o togli dal file
+quelli già configurati a mano.
+
 **Aggiungere un questionario.** Definiscilo in `src/content/assessments.ts`,
 aggiungi la sua banca in `scripts/gen_questions.py` e il file di affermazioni
 corrispondente. Il seed crea l'assessment e i suoi item; la UI lo mostra

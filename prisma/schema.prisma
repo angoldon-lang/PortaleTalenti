@@ -34,6 +34,12 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  /// Ruolo organizzativo (collaboratore, manager, leader…): decide quali
+  /// questionari la persona vede. È cosa diversa da `role`, che governa i
+  /// permessi nel portale.
+  orgRoleId String?
+  orgRole   OrgRole? @relation(fields: [orgRoleId], references: [id], onDelete: SetNull)
+
   accounts     Account[]
   sessions     Session[]
   testSessions TestSession[]
@@ -171,6 +177,7 @@ model Assessment {
   questions    Question[]
   testSessions TestSession[]
   results      TestResult[]
+  orgRoles     OrgRoleAssessment[]
 
   @@index([isActive, sortOrder])
   @@map("assessments")
@@ -339,6 +346,8 @@ enum AdminAction {
   USER_CREATED
   ROLE_CHANGED
   BRANDING_UPDATED
+  ORG_ROLE_UPDATED
+  ORG_ROLE_ASSIGNED
 }
 
 /// Un report descrive preferenze e stile di lavoro di una persona: ogni accesso
@@ -396,4 +405,47 @@ model AppSettings {
   updatedAt DateTime @updatedAt
 
   @@map("app_settings")
+}
+
+// ===========================================================================
+// Ruoli organizzativi: chi vede quali questionari
+// ===========================================================================
+
+/// Un ruolo aziendale (Collaboratore, Manager, Leader…). Determina l'insieme
+/// di questionari somministrati alle persone che lo ricoprono.
+model OrgRole {
+  id          String @id @default(cuid())
+  slug        String @unique
+  name        String
+  description String
+
+  /// Ruolo applicato a chi non ne ha uno assegnato esplicitamente.
+  isDefault Boolean @default(false)
+  sortOrder Int     @default(0)
+
+  users       User[]
+  assessments OrgRoleAssessment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@map("org_roles")
+}
+
+/// Abilitazione di un questionario per un ruolo, con la distinzione fra
+/// "può farlo" e "deve farlo".
+model OrgRoleAssessment {
+  orgRoleId    String
+  assessmentId String
+
+  /// true = richiesto alla persona; false = disponibile ma facoltativo.
+  isRequired Boolean @default(false)
+
+  orgRole    OrgRole    @relation(fields: [orgRoleId], references: [id], onDelete: Cascade)
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@id([orgRoleId, assessmentId])
+  @@index([assessmentId])
+  @@map("org_role_assessments")
 }

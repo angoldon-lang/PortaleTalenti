@@ -6,7 +6,12 @@ import { AppShell } from '@/components/app-shell';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { QuestionnaireRunner } from '@/components/questionnaire/questionnaire-runner';
 import { requireUser } from '@/server/guards';
-import { getAssessmentBySlug, getLatestReport, getOrCreateTestSession } from '@/server/test-service';
+import {
+  AssessmentNotAllowedError,
+  getAssessmentBySlug,
+  getLatestReport,
+  getOrCreateTestSession,
+} from '@/server/test-service';
 import { restartTestAction } from '@/server/test-actions';
 
 export async function generateMetadata({
@@ -32,10 +37,34 @@ export default async function QuestionnairePage({
   const assessment = await getAssessmentBySlug(slug);
   if (!assessment) notFound();
 
-  const [state, existingReport] = await Promise.all([
-    getOrCreateTestSession(user.id, slug),
-    getLatestReport(user.id, slug),
-  ]);
+  const isAdmin = user.role === 'ADMIN';
+
+  let state;
+  try {
+    state = await getOrCreateTestSession(user.id, slug, isAdmin);
+  } catch (error) {
+    if (error instanceof AssessmentNotAllowedError) {
+      return (
+        <AppShell user={{ ...user, role: user.role ?? 'USER' }}>
+          <div className="mx-auto max-w-xl px-4 py-16 text-center sm:px-6">
+            <h1 className="text-2xl font-semibold tracking-tight text-ink-900">
+              Questionario non disponibile
+            </h1>
+            <p className="mt-3 text-ink-600">
+              «{assessment.name}» non è fra i questionari previsti per il tuo ruolo. Se pensi che
+              debba esserlo, parlane con chi amministra il portale.
+            </p>
+            <ButtonLink href="/questionario" className="mt-8">
+              Vedi i questionari disponibili
+            </ButtonLink>
+          </div>
+        </AppShell>
+      );
+    }
+    throw error;
+  }
+
+  const existingReport = await getLatestReport(user.id, slug);
 
   const showIntro = start !== '1' && state.answeredCount === 0;
 

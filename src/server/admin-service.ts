@@ -194,6 +194,7 @@ export async function listUsersForAdmin(query?: string) {
       email: true,
       role: true,
       createdAt: true,
+      orgRole: { select: { id: true, name: true } },
       _count: { select: { results: true } },
       testSessions: {
         orderBy: { lastActivityAt: 'desc' },
@@ -304,4 +305,27 @@ export async function buildResultsCsv(): Promise<string> {
   );
 
   return [header.join(','), ...rows].join('\r\n');
+}
+
+// ===========================================================================
+// Ruoli organizzativi
+// ===========================================================================
+
+export async function listOrgRoles() {
+  return prisma.orgRole.findMany({
+    orderBy: { sortOrder: 'asc' },
+    include: {
+      assessments: {
+        include: { assessment: { select: { id: true, slug: true, name: true, subtitle: true } } },
+      },
+      _count: { select: { users: true } },
+    },
+  });
+}
+
+export async function listOrgRoleOptions() {
+  return prisma.orgRole.findMany({
+    orderBy: { sortOrder: 'asc' },
+    select: { id: true, name: true, slug: true, isDefault: true },
+  });
 }

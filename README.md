@@ -241,6 +241,33 @@ pg_dump -Fc "$DATABASE_URL" > backup-$(date +%F).dump
 
 ---
 
+## Ruoli organizzativi
+
+Non tutti devono compilare tutto: somministrare *for Managers* a chi non gestisce
+nessuno produce risposte immaginate invece che osservate. Da **Amministrazione →
+Ruoli** decidi quali questionari vede ciascun ruolo, e con quale urgenza:
+
+- **Abilitato** — la persona lo trova fra i suoi questionari;
+- **Richiesto** — compare evidenziato come da compilare.
+
+Il ruolo si assegna alla creazione dell'utente o in qualsiasi momento da
+*Amministrazione → Utenti*. Chi non ne ha uno ricade sul ruolo **predefinito**.
+
+I quattro ruoli creati dal seed sono un punto di partenza modificabile:
+
+| Ruolo | Questionari |
+| --- | --- |
+| Collaboratore *(predefinito)* | Talenti Essenziale *(richiesto)*, CliftonStrengths 34 |
+| Manager | CliftonStrengths 34 e for Managers *(richiesti)*, Talenti Essenziale |
+| Leader | CliftonStrengths 34 e for Leaders *(richiesti)*, Talenti Essenziale |
+| Direzione | tutti e quattro |
+
+Il controllo non è solo grafico: aprire l'URL di un questionario non abilitato
+mostra «Questionario non disponibile» invece di avviarlo. Gli amministratori
+vedono comunque tutto, per poter provare ciò che assegnano.
+
+---
+
 ## Personalizzazione
 
 Da **Amministrazione → Personalizzazione** puoi impostare logo, nome

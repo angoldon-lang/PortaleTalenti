@@ -102,6 +102,7 @@ export async function createUserAction(
     email: formData.get('email'),
     role: formData.get('role'),
     password: formData.get('password') ?? '',
+    orgRoleId: formData.get('orgRoleId') ?? '',
   });
 
   if (!parsed.success) {
@@ -109,6 +110,15 @@ export async function createUserAction(
   }
 
   const { name, email, role } = parsed.data;
+
+  const orgRoleId = parsed.data.orgRoleId?.trim() || null;
+  if (orgRoleId) {
+    const exists = await prisma.orgRole.findUnique({
+      where: { id: orgRoleId },
+      select: { id: true },
+    });
+    if (!exists) return { fieldErrors: { orgRoleId: ['Ruolo organizzativo non valido'] } };
+  }
 
   const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
   if (existing) {
@@ -126,7 +136,7 @@ export async function createUserAction(
   // questo blocco l'azione fallirebbe in silenzio e il form resterebbe fermo.
   try {
     const user = await prisma.user.create({
-      data: { name, email, role, passwordHash: await bcrypt.hash(plainPassword, 12) },
+      data: { name, email, role, orgRoleId, passwordHash: await bcrypt.hash(plainPassword, 12) },
       select: { id: true, email: true },
     });
 
@@ -228,4 +238,92 @@ export async function saveBrandingAction(
   revalidatePath('/', 'layout');
 
   return { success: 'Personalizzazione salvata.' };
+}
+
+// ===========================================================================
+// Ruoli organizzativi: quali questionari vede chi
+// ===========================================================================
+
+/**
+ * Salva le abilitazioni di un ruolo. Il form invia, per ogni questionario,
+ * `enabled:<id>` e `required:<id>`: si riscrive l'intero insieme invece di
+ * calcolare differenze, perché è una manciata di righe e la logica resta
+ * leggibile.
+ */
+export async function saveOrgRoleAssessmentsAction(formData: FormData): Promise<void> {
+  const admin = await requireAdmin();
+
+  const orgRoleId = String(formData.get('orgRoleId') ?? '');
+  if (!orgRoleId) return;
+
+  const role = await prisma.orgRole.findUnique({
+    where: { id: orgRoleId },
+    select: { id: true, name: true },
+  });
+  if (!role) return;
+
+  const assessments = await prisma.assessment.findMany({ select: { id: true } });
+
+  const enabled = assessments
+    .filter((a) => formData.get(`enabled:${a.id}`) === 'on')
+    .map((a) => ({ assessmentId: a.id, isRequired: formData.get(`required:${a.id}`) === 'on' }));
+
+  await prisma.$transaction([
+    prisma.orgRoleAssessment.deleteMany({ where: { orgRoleId } }),
+    prisma.orgRoleAssessment.createMany({
+      data: enabled.map((e) => ({ orgRoleId, ...e })),
+    }),
+  ]);
+
+  await prisma.adminAuditLog.create({
+    data: {
+      action: 'ORG_ROLE_UPDATED',
+      actorId: admin.id,
+      actorEmail: admin.email ?? '',
+      detail: `${role.name}: ${enabled.length} questionari abilitati`,
+    },
+  });
+
+  revalidatePath('/admin/ruoli');
+}
+
+const assignRoleSchema = z.object({
+  userId: z.string().min(1),
+  /** Stringa vuota = nessun ruolo, quindi si applica quello predefinito. */
+  orgRoleId: z.string(),
+});
+
+export async function assignOrgRoleAction(formData: FormData): Promise<void> {
+  const admin = await requireAdmin();
+
+  const parsed = assignRoleSchema.safeParse({
+    userId: formData.get('userId'),
+    orgRoleId: formData.get('orgRoleId') ?? '',
+  });
+  if (!parsed.success) return;
+
+  const orgRoleId = parsed.data.orgRoleId || null;
+  if (orgRoleId) {
+    const exists = await prisma.orgRole.findUnique({ where: { id: orgRoleId }, select: { id: true } });
+    if (!exists) return;
+  }
+
+  const updated = await prisma.user.update({
+    where: { id: parsed.data.userId },
+    data: { orgRoleId },
+    select: { id: true, email: true, orgRole: { select: { name: true } } },
+  });
+
+  await prisma.adminAuditLog.create({
+    data: {
+      action: 'ORG_ROLE_ASSIGNED',
+      actorId: admin.id,
+      actorEmail: admin.email ?? '',
+      subjectId: updated.id,
+      subjectEmail: updated.email,
+      detail: updated.orgRole?.name ?? 'ruolo predefinito',
+    },
+  });
+
+  revalidatePath('/admin/utenti');
 }

@@ -199,6 +199,9 @@ dall'amministratore non viene invece rimandata a schermo, perché la conosce gi�
 `/admin/utenti` — ricerca per nome o email, stato della compilazione, numero di
 report, promozione/rimozione del ruolo Admin.
 
+`/admin/ruoli` — per ciascun ruolo organizzativo, quali questionari sono
+abilitati e quali richiesti. Vedi *Ruoli organizzativi* più sotto.
+
 `/admin/personalizzazione` — logo, nome dell'organizzazione, colore principale
 e riga in fondo al PDF. Vedi *Personalizzazione* più sotto.
 
@@ -265,3 +268,34 @@ blocco `<style>` generato dal colore salvato.
 URI. `@react-pdf/renderer` non sa disegnare gli SVG dentro `<Image>`, quindi un
 logo SVG viene mostrato nel sito ma sostituito dal nome testuale nel report; il
 pannello lo dice esplicitamente quando il logo caricato è un SVG.
+
+---
+
+## Ruoli organizzativi
+
+| File | Ruolo |
+| --- | --- |
+| `src/content/org-roles.ts` | i quattro ruoli predefiniti e le loro abilitazioni |
+| `src/server/test-service.ts` | `getAllowedAssessments()` e il blocco in `getOrCreateTestSession()` |
+| `src/app/admin/ruoli/page.tsx` | il pannello di configurazione |
+
+**Due nozioni di "ruolo", volutamente separate.** `User.role` (USER/ADMIN)
+governa i permessi nel portale; `User.orgRoleId` indica il ruolo aziendale
+(Collaboratore, Manager, Leader…) e decide quali questionari la persona vede.
+Confonderle avrebbe legato i permessi amministrativi alla posizione in
+organigramma, che sono cose diverse.
+
+**La regola.** `OrgRoleAssessment` collega ruolo e questionario con un flag
+`isRequired`, così si distingue "può farlo" da "deve farlo". Chi non ha un ruolo
+assegnato ricade su quello marcato `isDefault`; se non esiste alcun ruolo — per
+esempio prima del primo seed — non si blocca nessuno, perché un portale
+permissivo è preferibile a uno inutilizzabile.
+
+Gli amministratori non sono filtrati: devono poter provare i questionari che
+assegnano agli altri.
+
+**Dove sta il controllo.** In `getOrCreateTestSession()`, cioè nel servizio, non
+nella pagina: nascondere una card non impedisce di digitare l'URL. Un
+questionario non abilitato solleva `AssessmentNotAllowedError` e la pagina
+mostra un messaggio invece di avviare la compilazione. Verificato con un utente
+"Collaboratore" che apre direttamente `/questionario/leaders`.

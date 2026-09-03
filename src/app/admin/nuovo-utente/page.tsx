@@ -1,6 +1,9 @@
 import { CreateUserForm } from '@/components/admin/create-user-form';
+import { listOrgRoleOptions } from '@/server/admin-service';
 
-export default function AdminNewUserPage() {
+export default async function AdminNewUserPage() {
+  const orgRoles = await listOrgRoleOptions();
+
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight text-ink-900">Nuovo utente</h1>
@@ -11,7 +14,7 @@ export default function AdminNewUserPage() {
       </p>
 
       <div className="mt-8">
-        <CreateUserForm />
+        <CreateUserForm orgRoles={orgRoles} />
       </div>
     </>
   );

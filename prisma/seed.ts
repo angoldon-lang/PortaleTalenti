@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 import { THEMES } from '../src/content/themes';
 import { QUESTION_BANKS } from '../src/content/questions';
 import { ASSESSMENTS } from '../src/content/assessments';
+import { ORG_ROLES } from '../src/content/org-roles';
 
 // `tsx prisma/seed.ts` non carica .env da solo (a differenza della CLI Prisma).
 try {
@@ -72,6 +73,34 @@ async function seedAssessmentsAndQuestions() {
   }
 }
 
+async function seedOrgRoles() {
+  const assessments = await prisma.assessment.findMany({ select: { id: true, slug: true } });
+  const idBySlug = new Map(assessments.map((a) => [a.slug, a.id]));
+
+  for (const seed of ORG_ROLES) {
+    const { assessments: enabled, ...role } = seed;
+
+    const orgRole = await prisma.orgRole.upsert({
+      where: { slug: role.slug },
+      update: role,
+      create: role,
+      select: { id: true },
+    });
+
+    for (const entry of enabled) {
+      const assessmentId = idBySlug.get(entry.slug);
+      if (!assessmentId) throw new Error(`Ruolo ${role.slug}: questionario ${entry.slug} non trovato`);
+
+      await prisma.orgRoleAssessment.upsert({
+        where: { orgRoleId_assessmentId: { orgRoleId: orgRole.id, assessmentId } },
+        update: { isRequired: entry.required },
+        create: { orgRoleId: orgRole.id, assessmentId, isRequired: entry.required },
+      });
+    }
+  }
+  console.log(`✓ ${ORG_ROLES.length} ruoli organizzativi`);
+}
+
 async function seedUsers() {
   if (process.env.SEED_DEMO_USERS === 'false') return;
 
@@ -112,6 +141,7 @@ async function main() {
   console.log('Seed del Portale Talenti…');
   await seedThemes();
   await seedAssessmentsAndQuestions();
+  await seedOrgRoles();
   await seedUsers();
   console.log('Fatto.');
 }

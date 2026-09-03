@@ -19,7 +19,7 @@ export default async function DashboardPage({
   const user = await requireUser('/dashboard');
   const [params, assessments, results] = await Promise.all([
     searchParams,
-    listAssessmentsForUser(user.id),
+    listAssessmentsForUser(user.id, user.role === 'ADMIN'),
     listUserResults(user.id),
   ]);
 
@@ -96,7 +96,14 @@ export default async function DashboardPage({
               return (
                 <Card key={a.id} className="flex flex-col">
                   <CardHeader>
-                    <CardTitle>{a.name}</CardTitle>
+                    <span className="flex flex-wrap items-center gap-2">
+                      <CardTitle>{a.name}</CardTitle>
+                      {a.isRequired && !done && (
+                        <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-900">
+                          Richiesto
+                        </span>
+                      )}
+                    </span>
                     <p className="mt-1 text-sm text-ink-500">{a.subtitle}</p>
                   </CardHeader>
                   <CardContent className="flex flex-1 flex-col pt-0">

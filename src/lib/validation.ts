@@ -44,6 +44,8 @@ export const adminCreateUserSchema = z.object({
   role: z.enum(['USER', 'ADMIN']),
   /** Vuota: il portale genera una password temporanea da consegnare a mano. */
   password: z.union([passwordSchema, z.literal('')]).optional(),
+  /** Vuoto: si applica il ruolo organizzativo predefinito. */
+  orgRoleId: z.string().optional(),
 });
 
 export type AdminCreateUserInput = z.infer<typeof adminCreateUserSchema>;

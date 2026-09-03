@@ -1,7 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { listUsersForAdmin } from '@/server/admin-service';
-import { setUserRoleAction } from '@/server/admin-actions';
+import { listOrgRoleOptions, listUsersForAdmin } from '@/server/admin-service';
+import { assignOrgRoleAction, setUserRoleAction } from '@/server/admin-actions';
 import { requireAdmin } from '@/server/guards';
 import { formatDate } from '@/lib/utils';
 
@@ -11,7 +11,11 @@ export default async function AdminUsersPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const [admin, { q }] = await Promise.all([requireAdmin(), searchParams]);
-  const users = await listUsersForAdmin(q?.trim() || undefined);
+  const [users, orgRoles] = await Promise.all([
+    listUsersForAdmin(q?.trim() || undefined),
+    listOrgRoleOptions(),
+  ]);
+  const defaultRole = orgRoles.find((r) => r.isDefault);
 
   return (
     <>
@@ -40,11 +44,12 @@ export default async function AdminUsersPage({
       <Card className="mt-6 overflow-hidden">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left text-sm">
+            <table className="w-full min-w-[980px] text-left text-sm">
               <thead>
                 <tr className="border-b border-ink-200 text-xs uppercase tracking-wide text-ink-500">
                   <th scope="col" className="px-5 py-3">Utente</th>
                   <th scope="col" className="px-3 py-3">Registrato</th>
+                  <th scope="col" className="px-3 py-3">Ruolo organizzativo</th>
                   <th scope="col" className="px-3 py-3">Stato test</th>
                   <th scope="col" className="px-3 py-3">Report</th>
                   <th scope="col" className="px-3 py-3">Ruolo</th>
@@ -61,6 +66,32 @@ export default async function AdminUsersPage({
                       </td>
                       <td className="whitespace-nowrap px-3 py-3 text-ink-600">
                         {formatDate(u.createdAt)}
+                      </td>
+                      <td className="px-3 py-3">
+                        <form action={assignOrgRoleAction} className="flex items-center gap-2">
+                          <input type="hidden" name="userId" value={u.id} />
+                          <label htmlFor={`orgRole-${u.id}`} className="sr-only">
+                            Ruolo organizzativo di {u.name ?? u.email}
+                          </label>
+                          <select
+                            id={`orgRole-${u.id}`}
+                            name="orgRoleId"
+                            defaultValue={u.orgRole?.id ?? ''}
+                            className="input mt-0 w-40 py-1.5 text-sm"
+                          >
+                            <option value="">
+                              {defaultRole ? `Predefinito (${defaultRole.name})` : 'Nessuno'}
+                            </option>
+                            {orgRoles.map((r) => (
+                              <option key={r.id} value={r.id}>
+                                {r.name}
+                              </option>
+                            ))}
+                          </select>
+                          <Button type="submit" variant="secondary" size="sm">
+                            Applica
+                          </Button>
+                        </form>
                       </td>
                       <td className="px-3 py-3 text-ink-600">
                         {!session

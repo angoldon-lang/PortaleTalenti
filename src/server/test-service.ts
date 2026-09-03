@@ -5,6 +5,14 @@ import type { Assessment, Domain, Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { computeScores, LIKERT_NEUTRAL } from '@/lib/scoring';
 
+/** Questionario non abilitato per il ruolo organizzativo dell'utente. */
+export class AssessmentNotAllowedError extends Error {
+  constructor() {
+    super('Questo questionario non è abilitato per il tuo ruolo.');
+    this.name = 'AssessmentNotAllowedError';
+  }
+}
+
 export const DEFAULT_TIMER_SECONDS = Number(
   process.env.NEXT_PUBLIC_QUESTION_TIMER_SECONDS ?? 20,
 );
@@ -33,8 +41,53 @@ export async function getAssessmentBySlug(slug: string) {
   return prisma.assessment.findFirst({ where: { slug, isActive: true } });
 }
 
-/** Catalogo degli assessment con lo stato di avanzamento dell'utente. */
-export async function listAssessmentsForUser(userId: string) {
+export type AllowedAssessment = { slug: string; isRequired: boolean };
+
+/**
+ * Quali questionari può compilare una persona.
+ *
+ * La regola arriva dal suo ruolo organizzativo; chi non ne ha uno assegnato
+ * ricade sul ruolo marcato come predefinito. Se non esiste alcun ruolo — per
+ * esempio prima del primo seed — non si blocca nessuno: meglio un portale
+ * permissivo che uno inutilizzabile.
+ *
+ * Gli amministratori vedono tutto, perché devono poter provare i questionari
+ * che assegnano agli altri.
+ */
+export async function getAllowedAssessments(
+  userId: string,
+  isAdmin = false,
+): Promise<AllowedAssessment[] | null> {
+  if (isAdmin) return null; // null = nessuna restrizione
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { orgRoleId: true },
+  });
+
+  const role = user?.orgRoleId
+    ? await prisma.orgRole.findUnique({
+        where: { id: user.orgRoleId },
+        select: { assessments: { select: { isRequired: true, assessment: { select: { slug: true } } } } },
+      })
+    : await prisma.orgRole.findFirst({
+        where: { isDefault: true },
+        select: { assessments: { select: { isRequired: true, assessment: { select: { slug: true } } } } },
+      });
+
+  if (!role) return null;
+
+  return role.assessments.map((a) => ({ slug: a.assessment.slug, isRequired: a.isRequired }));
+}
+
+/**
+ * Catalogo degli assessment abilitati per l'utente, con il suo avanzamento e
+ * l'indicazione di quali sono richiesti dal suo ruolo.
+ */
+export async function listAssessmentsForUser(userId: string, isAdmin = false) {
+  const allowed = await getAllowedAssessments(userId, isAdmin);
+  const allowedBySlug = allowed ? new Map(allowed.map((a) => [a.slug, a])) : null;
+
   const [assessments, sessions, results] = await Promise.all([
     prisma.assessment.findMany({
       where: { isActive: true },
@@ -56,12 +109,15 @@ export async function listAssessmentsForUser(userId: string) {
   const latestResult = new Map<string, (typeof results)[number]>();
   for (const r of results) if (!latestResult.has(r.assessmentId)) latestResult.set(r.assessmentId, r);
 
-  return assessments.map((a) => ({
-    ...a,
-    questionCount: a._count.questions,
-    progress: inProgress.get(a.id) ?? null,
-    result: latestResult.get(a.id) ?? null,
-  }));
+  return assessments
+    .filter((a) => !allowedBySlug || allowedBySlug.has(a.slug))
+    .map((a) => ({
+      ...a,
+      questionCount: a._count.questions,
+      progress: inProgress.get(a.id) ?? null,
+      result: latestResult.get(a.id) ?? null,
+      isRequired: allowedBySlug?.get(a.slug)?.isRequired ?? false,
+    }));
 }
 
 /**
@@ -72,9 +128,17 @@ export async function listAssessmentsForUser(userId: string) {
 export async function getOrCreateTestSession(
   userId: string,
   assessmentSlug: string,
+  isAdmin = false,
 ): Promise<TestSessionState> {
   const assessment = await getAssessmentBySlug(assessmentSlug);
   if (!assessment) throw new Error('Questionario non trovato.');
+
+  // Il controllo sta qui, non solo nella pagina: nascondere una card non
+  // impedisce di digitare l'URL del questionario.
+  const allowed = await getAllowedAssessments(userId, isAdmin);
+  if (allowed && !allowed.some((a) => a.slug === assessmentSlug)) {
+    throw new AssessmentNotAllowedError();
+  }
 
   const questions = await prisma.question.findMany({
     where: { assessmentId: assessment.id, isActive: true },

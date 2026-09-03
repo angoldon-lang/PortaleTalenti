@@ -25,7 +25,11 @@ function FieldError({ id, errors }: { id: string; errors?: string[] }) {
   );
 }
 
-export function CreateUserForm() {
+export function CreateUserForm({
+  orgRoles,
+}: {
+  orgRoles: { id: string; name: string; isDefault: boolean }[];
+}) {
   const [state, formAction] = useActionState<CreateUserState, FormData>(createUserAction, {});
   const fe = state.fieldErrors ?? {};
 
@@ -38,7 +42,7 @@ export function CreateUserForm() {
       >
         <p className="font-semibold">Utente creato.</p>
         <p className="mt-1">
-          {name} · {email} · ruolo {role === 'ADMIN' ? 'Amministratore' : 'Utente standard'}
+          {name} · {email} · {role === 'ADMIN' ? 'Amministratore' : 'Utente standard'}
         </p>
 
         {password ? (
@@ -106,8 +110,34 @@ export function CreateUserForm() {
       </div>
 
       <div>
+        <label htmlFor="orgRoleId" className="label">
+          Ruolo organizzativo
+        </label>
+        <select id="orgRoleId" name="orgRoleId" defaultValue="" className="input">
+          <option value="">
+            {orgRoles.find((r) => r.isDefault)
+              ? `Predefinito (${orgRoles.find((r) => r.isDefault)!.name})`
+              : 'Nessuno'}
+          </option>
+          {orgRoles.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.name}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1.5 text-xs text-ink-500">
+          Determina quali questionari la persona vedrà. Si gestisce da{' '}
+          <a href="/admin/ruoli" className="underline underline-offset-2">
+            Ruoli
+          </a>
+          .
+        </p>
+        <FieldError id="orgrole-error" errors={fe.orgRoleId} />
+      </div>
+
+      <div>
         <label htmlFor="role" className="label">
-          Ruolo
+          Permessi nel portale
         </label>
         <select id="role" name="role" defaultValue="USER" className="input">
           <option value="USER">Utente standard</option>
