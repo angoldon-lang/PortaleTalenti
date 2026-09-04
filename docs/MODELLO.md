@@ -18,35 +18,34 @@ copre tutte.
 
 | Macro-area | `Domain` | Contributo |
 | --- | --- | --- |
-| Esecuzione | `EXECUTING` | Far accadere le cose: trasformare le idee in risultati |
-| Influenza | `INFLUENCING` | Farsi ascoltare, portare gli altri, estendere la portata del gruppo |
-| Relazioni | `RELATIONSHIP` | Tenere insieme le persone, rendere il gruppo più della somma delle parti |
-| Pensiero Strategico | `STRATEGIC` | Assorbire e analizzare informazioni per decidere meglio |
+| Concretezza Operativa | `OPERATIONAL` | Far accadere le cose: trasformare le idee in risultati |
+| Impatto Interpersonale | `INTERPERSONAL` | Farsi ascoltare, portare gli altri, estendere la portata del gruppo |
+| Legame e Sostegno | `SUPPORTIVE` | Tenere insieme le persone, rendere il gruppo più della somma delle parti |
+| Elaborazione Cognitiva | `COGNITIVE` | Assorbire e analizzare informazioni per decidere meglio |
 
 ## 2. I trentaquattro temi di talento
 
-La distribuzione fra le aree è di 9 temi in
-Esecuzione, 8 in Influenza, 9 in Relazioni, 8 in Pensiero Strategico. La
+La distribuzione fra le aree è di 9 temi in Concretezza Operativa, 8 in Impatto
+Interpersonale, 9 in Legame e Sostegno, 8 in Elaborazione Cognitiva. La
 definizione completa (descrizione, punti di forza, punti ciechi, azioni di
 allenamento, contesti, più le due sezioni per le lenti Leaders e Managers) sta in
 `src/content/themes.ts` ed è quella che alimenta sia la dashboard sia il PDF.
 
-I nomi sono sintagmi descrittivi, rivisti perché nessuno di essi richiami la
-denominazione di uno strumento di terzi: il portale ne condivide l'impianto
-concettuale pubblico, non
-è una traduzione autorizzata della sua nomenclatura.
+I nomi sono sintagmi descrittivi, riscritti perché nessuno richiami la
+denominazione di uno strumento di terzi: la versione precedente usava
+denominazioni che ne erano traduzioni troppo ravvicinate. Il portale condivide
+l'impianto concettuale pubblico di questa famiglia di modelli, non la
+nomenclatura di un prodotto specifico.
 
 | Macro-area | Temi |
 | --- | --- |
-| Esecuzione (9) | Realizzatore · Organizzazione · Responsabilità · Coordinatore · Valori · Equità · Prudenza · Focalizzazione · Risolutore |
-| Influenza (8) | Comunicazione · Attivatore · Fiducia in Sé · Assertività · Competizione · Massimizzatore · Riconoscimento · Socievolezza |
-| Relazioni (9) | Empatia · Armonia · Sviluppatore · Adattabilità · Connessione · Inclusione · Individualizzazione · Positività · Relazione |
-| Pensiero Strategico (8) | Analitico · Ideazione · Apprendimento · Contesto · Visione Futura · Raccolta · Riflessione · Strategia |
+| Concretezza Operativa (9) | Tensione Produttiva · Ordinamento della Complessità · Vincolo dell'Impegno Preso · Riconfigurazione delle Risorse · Princìpi Non Negoziabili · Uniformità di Trattamento · Cautela Preventiva · Filtro Direzionale · Riparazione del Guasto |
+| Impatto Interpersonale (8) | Efficacia Espositiva · Passaggio all'Azione · Sicurezza di Giudizio · Presa di Posizione · Confronto con il Risultato Altrui · Innalzamento dell'Eccellenza · Impronta Riconoscibile · Apertura al Contatto Nuovo |
+| Legame e Sostegno (9) | Lettura degli Stati Emotivi · Ricerca del Terreno Comune · Riconoscimento del Potenziale · Aderenza al Presente · Percezione dei Legami · Allargamento del Gruppo · Differenziazione della Persona · Alleggerimento del Clima · Profondità dei Pochi Legami |
+| Elaborazione Cognitiva (8) | Richiesta di Prove · Accostamento Inatteso · Piacere di Imparare · Ricorso al Precedente · Nitidezza del Possibile · Accumulo Informativo · Attività di Pensiero · Selezione del Percorso |
 
 I dodici temi usati dal questionario breve (Inventario dei Talenti — Essenziale) sono i primi tre
-di ciascuna area: Realizzatore, Organizzazione, Responsabilità, Comunicazione,
-Attivatore, Fiducia in Sé, Empatia, Armonia, Sviluppatore, Analitico, Ideazione,
-Apprendimento.
+di ciascuna area: Tensione Produttiva, Ordinamento della Complessità, Vincolo dell'Impegno Preso, Efficacia Espositiva, Passaggio all'Azione, Sicurezza di Giudizio, Lettura degli Stati Emotivi, Ricerca del Terreno Comune, Riconoscimento del Potenziale, Richiesta di Prove, Accostamento Inatteso, Piacere di Imparare.
 
 Ogni tema è descritto su sei assi, perché un talento senza il suo lato ombra non
 è utilizzabile:
