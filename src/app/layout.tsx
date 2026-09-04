@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s · ${organizationName}`,
     },
     description:
-      'Questionario psicometrico e report personalizzato sui tuoi talenti dominanti, ispirato al modello delle quattro macro-aree di Gallup CliftonStrengths.',
+      'Questionario psicometrico e report personalizzato sui tuoi punti di forza dominanti, basato su un modello proprietario a cinque macro-aree e trenta tratti.',
     robots: { index: true, follow: true },
   };
 }

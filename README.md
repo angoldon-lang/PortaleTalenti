@@ -26,29 +26,34 @@ Il modello, le ragioni delle sue scelte e la sua verifica sono documentati in
 
 ### Modello precedente
 
-I quattro questionari storici, ispirati al modello delle quattro macro-aree di
-Gallup CliftonStrengths®, restano disponibili e funzionanti: chi li ha già
+I quattro questionari storici restano disponibili e funzionanti: chi li ha già
 compilati conserva il suo report, e chi vuole confrontare le due letture può
 farlo. I ruoli organizzativi li lasciano abilitati ma non li richiedono più.
 
 | Questionario | Temi | Item | Durata | Report |
 | --- | --- | --- | --- | --- |
-| Talenti Essenziale | 12 | 66 | ~22 min | Top 5 |
-| CliftonStrengths 34 | 34 | 136 | ~45 min | Top 10 + classifica 1-34 |
-| CliftonStrengths for Leaders | 34 | 102 | ~34 min | Top 7, lente leadership |
-| CliftonStrengths for Managers | 34 | 102 | ~34 min | Top 7, lente gestione team |
+| Inventario dei Talenti — Essenziale | 12 | 66 | ~22 min | Top 5 |
+| Inventario dei Talenti — Completo | 34 | 136 | ~45 min | Top 10 + classifica 1-34 |
+| Inventario dei Talenti — Leadership | 34 | 102 | ~34 min | Top 7, lente leadership |
+| Inventario dei Talenti — Gestione del Team | 34 | 102 | ~34 min | Top 7, lente gestione team |
+
+Anche questo modello è stato rinominato: temi e macro-aree portano ora sintagmi
+descrittivi al posto delle denominazioni precedenti, che erano traduzioni troppo
+ravvicinate di uno strumento di terzi. Gli identificatori interni e i punteggi
+già calcolati sono stati migrati insieme ai nomi, quindi i report esistenti
+mostrano gli stessi temi con le denominazioni nuove.
 
 In entrambe le metodologie ogni questionario ha la **propria banca di item**: le
 affermazioni della versione per chi guida parlano di direzione e decisioni
 difficili, quelle per chi gestisce di deleghe, feedback e carichi di lavoro. Non
 è lo stesso test con etichette diverse.
 
-> Nessuna affiliazione con Gallup, Inc. I contenuti dei questionari storici sono
-> originali e costruiti sul modello concettuale, non una riproduzione dello
-> strumento Gallup; la Mappa dei Punti di Forza è un modello indipendente, con
-> architettura, denominazioni, contenuti e algoritmo propri. Nulla di quanto
-> scritto qui è un parere legale: per un uso commerciale fai condurre a un
-> legale una ricerca di anteriorità su marchi e denominazioni.
+> Nessuna affiliazione con fornitori terzi di strumenti di assessment. Entrambi i
+> modelli hanno denominazioni, contenuti e algoritmi propri; nessun marchio di
+> terzi compare nel portale, e `scripts/mpf/verifica_indipendenza.py` lo
+> controlla a ogni modifica su tutti e due. Nulla di quanto scritto qui è un
+> parere legale: per un uso commerciale fai condurre a un legale una ricerca di
+> anteriorità su marchi e denominazioni.
 
 ---
 
@@ -315,9 +320,9 @@ I quattro ruoli creati dal seed sono un punto di partenza modificabile:
 
 | Ruolo | Questionari |
 | --- | --- |
-| Collaboratore *(predefinito)* | Talenti Essenziale *(richiesto)*, CliftonStrengths 34 |
-| Manager | CliftonStrengths 34 e for Managers *(richiesti)*, Talenti Essenziale |
-| Leader | CliftonStrengths 34 e for Leaders *(richiesti)*, Talenti Essenziale |
+| Collaboratore *(predefinito)* | Mappa Essenziale *(richiesta)*, Mappa Completa; l'Inventario dei Talenti resta facoltativo |
+| Manager | Mappa Completa e Mappa Gestione del Team *(richieste)*; Inventario dei Talenti facoltativo |
+| Leader | Mappa Completa e Mappa Leadership *(richieste)*; Inventario dei Talenti facoltativo |
 | Direzione | tutti e quattro |
 
 Il controllo non è solo grafico: aprire l'URL di un questionario non abilitato

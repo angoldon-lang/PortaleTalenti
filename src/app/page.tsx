@@ -48,9 +48,10 @@ export default async function HomePage() {
               Scopri dove sei già forte, invece di rincorrere ciò che ti manca.
             </h1>
             <p className="mt-5 text-lg leading-relaxed text-ink-600">
-              Un percorso ispirato al modello delle quattro macro-aree di Gallup
-              CliftonStrengths: coppie di affermazioni contrapposte, risposte
-              d’istinto e un report che traduce i tuoi talenti in comportamenti concreti.
+              Blocchi di quattro affermazioni fra cui indichi quella che ti descrive
+              di più e quella che ti descrive di meno: nessuna scala da tarare, solo
+              confronti. Ne esce un report che traduce i tuoi punti di forza in
+              comportamenti concreti.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <ButtonLink href={user ? '/questionario' : '/registrazione'} size="lg">
@@ -162,7 +163,8 @@ export default async function HomePage() {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-8 text-sm text-ink-500 sm:px-6">
           <p>{branding.organizationName} — assessment dei punti di forza.</p>
           <p>
-            Modello ispirato a Gallup CliftonStrengths®, senza alcuna affiliazione con Gallup, Inc.
+            Modello proprietario, sviluppato per questo portale. Nessuna affiliazione con
+            fornitori terzi di strumenti di assessment.
           </p>
         </div>
       </footer>

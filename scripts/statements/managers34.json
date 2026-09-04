@@ -1,342 +1,342 @@
 {
- "realizzatore": [
-  "Assegno ai miei collaboratori carichi di lavoro pieni",
-  "Valuto le persone soprattutto da quanto portano a termine",
-  "Mi infastidisce vedere qualcuno del team fermo",
-  "Nei colloqui parto sempre dai risultati raggiunti",
-  "Do l'esempio arrivando prima e finendo dopo",
-  "Preferisco un collaboratore instancabile a uno brillante",
-  "Controllo l'avanzamento dei collaboratori più volte a settimana",
-  "Mi aspetto che ciascuno chiuda qualcosa ogni giorno"
- ],
- "organizzazione": [
-  "Do al team un calendario condiviso e lo faccio rispettare",
-  "Scrivo procedure per le attività che si ripetono",
-  "Voglio sapere chi fa cosa entro quando",
-  "Le riunioni le preparo con un ordine del giorno preciso",
-  "Mi disturba quando i collaboratori improvvisano il metodo",
-  "Divido i progetti in fasi con un responsabile per ciascuna",
-  "Do a ogni collaboratore una scaletta chiara delle priorità",
-  "Voglio che il lavoro del team segua sempre lo stesso metodo"
- ],
- "responsabilita": [
-  "Copro io le mancanze del team davanti agli altri",
-  "Verifico personalmente il lavoro prima che esca",
-  "Prendo su di me gli impegni che il gruppo non riesce a chiudere",
-  "Considero un debito personale ogni promessa fatta ai collaboratori",
-  "Faccio tardi io piuttosto che consegnare in ritardo",
-  "Mi sento in colpa quando qualcuno del team fallisce",
-  "Verifico di persona i lavori che escono a nome del team",
-  "Non prometto ai collaboratori cose che non posso garantire"
- ],
- "coordinatore": [
-  "Sposto le persone da un'attività all'altra secondo il bisogno",
-  "Rimescolo le assegnazioni quando vedo un assetto migliore",
-  "Gestisco i carichi di lavoro di tutti come un unico puzzle",
-  "Trovo sempre il modo di far incastrare turni e disponibilità",
-  "Cambio la composizione dei gruppi di lavoro con facilità",
-  "So chi spostare quando salta una risorsa",
-  "Riassegno i compiti quando qualcuno è sovraccarico",
-  "Riesco a far quadrare disponibilità e scadenze di tutti"
- ],
- "valori": [
-  "Spiego ai collaboratori il senso di quello che chiedo",
-  "Non chiedo al team cose che non condivido",
-  "Valuto le persone anche su come raggiungono i risultati",
-  "Difendo le mie convinzioni anche con i superiori",
-  "Voglio che il gruppo lavori in modo corretto, non solo efficace",
-  "Rifiuto scorciatoie che considero sbagliate",
-  "Chiedo ai collaboratori di lavorare nel modo che ritengo corretto",
-  "Motivo le richieste spiegando perché contano"
- ],
- "equita": [
-  "Assegno compiti e riconoscimenti con criteri dichiarati",
-  "Evito di avere collaboratori preferiti",
-  "Applico le regole allo stesso modo con tutti",
-  "Motivo pubblicamente ogni eccezione che concedo",
-  "Controllo che i carichi di lavoro siano distribuiti equamente",
-  "Mi accorgo quando qualcuno riceve un trattamento diverso",
-  "Distribuisco i lavori sgraditi a rotazione",
-  "Uso gli stessi parametri per valutare tutti"
- ],
- "prudenza": [
-  "Verifico il lavoro dei collaboratori prima di approvarlo",
-  "Non lancio un progetto finché non ho valutato i rischi",
-  "Metto in guardia il team sugli scenari peggiori",
-  "Concedo autonomia gradualmente, non subito",
-  "Preferisco un collaboratore affidabile a uno veloce",
-  "Prendo tempo prima di promettere qualcosa al team",
-  "Non lascio autonomia piena finché non ho visto lavorare la persona",
-  "Segnalo i rischi ai collaboratori prima che partano"
- ],
- "focalizzazione": [
-  "Do a ciascuno un obiettivo alla volta",
-  "Proteggo il team dalle richieste che non c'entrano",
-  "Ripeto la priorità finché non è chiara a tutti",
-  "Taglio dalle riunioni tutto ciò che non serve all'obiettivo",
-  "Mi infastidisce quando un collaboratore si disperde",
-  "Riporto le persone sul risultato quando divagano",
-  "Do una sola priorità alla volta a ciascuno",
-  "Rimuovo dal team le attività che non portano al risultato"
- ],
- "risolutore": [
-  "Intervengo appena vedo un collaboratore in difficoltà",
-  "Noto per primo cosa non va nel lavoro consegnato",
-  "Prendo in carico personalmente le situazioni compromesse",
-  "Do feedback soprattutto su ciò che va corretto",
-  "Mi attivo quando un processo del team smette di funzionare",
-  "Preferisco recuperare una persona che sostituirla",
-  "Intervengo subito sulle prestazioni che calano",
-  "Individuo l'errore prima che il cliente se ne accorga"
- ],
- "comunicazione": [
-  "Spiego le decisioni aziendali in modo che il team le capisca",
-  "Uso esempi concreti quando assegno un compito",
-  "Curo molto come comunico le notizie difficili",
-  "Faccio riunioni in cui le persone capiscono davvero il punto",
-  "Verifico che il messaggio sia arrivato a ciascuno",
-  "Racconto al gruppo il senso dei numeri",
-  "Riformulo le richieste finché non sono chiare a tutti",
-  "Preparo con cura come comunicare le notizie difficili"
- ],
- "attivatore": [
-  "Faccio partire i collaboratori anche senza istruzioni complete",
-  "Preferisco che il team impari provando",
-  "Sblocco io le situazioni in cui nessuno si muove",
-  "Metto fretta quando la discussione si allunga",
-  "Assegno compiti nuovi senza troppa preparazione",
-  "Chiedo prototipi rapidi invece di analisi lunghe",
-  "Faccio partire i collaboratori e correggo strada facendo",
-  "Chiedo un primo risultato rapido invece di un piano dettagliato"
- ],
- "fiducia-in-se": [
-  "Decido senza consultare il team quando serve",
-  "Do autonomia ampia perché mi fido del mio giudizio nel sceglierla",
-  "Non cerco conferme prima di comunicare una decisione",
-  "Resto fermo sulle mie posizioni davanti alle obiezioni",
-  "Mi assumo scelte impopolari senza esitare",
-  "Gestisco i momenti critici senza perdere sicurezza",
-  "Do autonomia ampia fin da subito",
-  "Decido io quando il gruppo non trova un accordo"
- ],
- "assertivita": [
-  "Dico chiaramente a un collaboratore quando qualcosa non va",
-  "Non rimando le conversazioni difficili",
-  "Prendo il controllo quando il gruppo si perde",
-  "Metto sul tavolo i temi che nessuno solleva",
-  "Sono diretto anche quando il messaggio è duro",
-  "Chiudo io le discussioni che si trascinano",
-  "Affronto subito i comportamenti che non vanno",
-  "Dico chiaramente a una persona che non sta andando bene"
- ],
- "competizione": [
-  "Confronto le prestazioni dei collaboratori fra loro",
-  "Uso obiettivi e classifiche per spingere il team",
-  "Voglio che il mio gruppo faccia meglio degli altri",
-  "Premio chi ottiene i risultati migliori",
-  "Mostro pubblicamente chi sta andando meglio",
-  "Alzo il target quando il team lo raggiunge troppo facilmente",
-  "Metto a confronto i risultati dei collaboratori",
-  "Premio in modo visibile chi ottiene di più"
- ],
- "massimizzatore": [
-  "Assegno a ciascuno i compiti in cui è già bravo",
-  "Investo più tempo sui collaboratori migliori",
-  "Chiedo di rifinire finché il lavoro non è eccellente",
-  "Sviluppo i punti di forza invece di correggere le lacune",
-  "Faccio fatica ad accettare consegne appena sufficienti",
-  "Punto a portare il team da buono a ottimo",
-  "Assegno a ciascuno ciò in cui è più forte",
-  "Chiedo di migliorare anche i lavori già buoni"
- ],
- "riconoscimento": [
-  "Do ai collaboratori occasioni per farsi notare",
-  "Scelgo per il team i progetti che contano",
-  "Voglio che si parli dei risultati del mio gruppo",
-  "Porto le persone migliori davanti al management",
-  "Mi motiva guidare un team di cui si parla bene",
-  "Cerco per il gruppo incarichi prestigiosi",
-  "Do visibilità ai collaboratori che se la meritano",
-  "Scelgo per il team incarichi di prestigio"
- ],
- "socievolezza": [
-  "Costruisco rapporti cordiali con tutti i collaboratori",
-  "Accolgo personalmente ogni nuovo arrivato",
-  "Presento i miei ai referenti delle altre funzioni",
-  "Creo occasioni informali per il gruppo",
-  "Mi è facile parlare con chiunque nel team",
-  "Apro porte ai collaboratori grazie ai miei contatti",
-  "Creo occasioni informali per far conoscere il gruppo",
-  "Accolgo personalmente chi entra nel team"
- ],
- "empatia": [
-  "Mi accorgo quando un collaboratore non sta bene",
-  "Chiedo come stanno le persone prima di chiedere i risultati",
-  "Rimando un richiamo se percepisco che la persona è fragile",
-  "Colgo le tensioni fra colleghi prima che diventino esplicite",
-  "Adatto il tono ai colloqui difficili con molta attenzione",
-  "Il malessere di un collaboratore mi resta addosso",
-  "Mi accorgo se un collaboratore sta attraversando un momento difficile",
-  "Adatto le richieste allo stato d'animo della persona"
- ],
- "armonia": [
-  "Cerco di comporre i contrasti dentro il team",
-  "Preferisco che il gruppo sia d'accordo prima di procedere",
-  "Evito di alimentare discussioni che considero inutili",
-  "Faccio da mediatore fra collaboratori in disaccordo",
-  "Smusso i messaggi duri prima di trasmetterli",
-  "Voglio che tutti si siano espressi prima di decidere",
-  "Intervengo per ricomporre i contrasti nel gruppo",
-  "Preferisco una soluzione accettata da tutti"
- ],
- "sviluppatore": [
-  "Dedico tempo alla crescita di ciascun collaboratore",
-  "Assegno compiti che spingono le persone oltre il loro livello",
-  "Faccio colloqui di sviluppo anche quando non sono obbligatori",
-  "Insisto su chi ha potenziale anche se ora rende poco",
-  "Preferisco far crescere qualcuno che sostituirlo",
-  "Mi soddisfa più il progresso dei miei che i miei risultati",
-  "Assegno compiti che fanno crescere, non solo che servono",
-  "Do feedback di sviluppo anche fuori dai colloqui formali"
- ],
- "adattabilita": [
-  "Riorganizzo il lavoro del team in giornata quando serve",
-  "Accolgo senza irrigidirmi i cambi di priorità dall'alto",
-  "Gestisco le assenze improvvise senza andare in crisi",
-  "Preferisco riassegnare al volo che rifare il piano",
-  "Le urgenze del team non mi destabilizzano",
-  "Cambio approccio con un collaboratore se quello scelto non funziona",
-  "Riorganizzo il lavoro del team in giornata",
-  "Non mi irrigidisco quando salta il programma"
- ],
- "connessione": [
-  "Spiego a ciascuno come il suo lavoro serve agli altri",
-  "Collego il team con le funzioni che ne dipendono",
-  "Faccio capire l'impatto del nostro lavoro fuori dal reparto",
-  "Considero le conseguenze delle mie decisioni su altri gruppi",
-  "Do un senso più ampio anche ai compiti ripetitivi",
-  "Curo i rapporti fra il mio team e il resto dell'organizzazione",
-  "Faccio vedere a ciascuno a cosa serve il suo lavoro",
-  "Curo i rapporti del team con gli altri reparti"
- ],
- "inclusione": [
-  "Verifico che nessuno del team resti tagliato fuori",
-  "Chiedo l'opinione dei collaboratori più silenziosi",
-  "Coinvolgo tutti nelle decisioni che li riguardano",
-  "Presento i nuovi arrivati a tutto il gruppo",
-  "Mi disturba quando si formano sottogruppi chiusi",
-  "Faccio in modo che le informazioni arrivino a tutti allo stesso modo",
-  "Verifico che tutti abbiano le stesse informazioni",
-  "Coinvolgo anche chi tende a restare in disparte"
- ],
- "individualizzazione": [
-  "Gestisco ciascun collaboratore in modo diverso",
-  "So cosa motiva ognuno delle persone che seguo",
-  "Assegno i compiti guardando il carattere oltre alle competenze",
-  "Adatto il modo di dare feedback alla singola persona",
-  "Compongo i gruppi di lavoro pensando alle affinità",
-  "Noto differenze fra i collaboratori che agli altri sfuggono",
-  "Uso parole diverse con persone diverse",
-  "Costruisco obiettivi su misura per ciascuno"
- ],
- "positivita": [
-  "Porto buonumore anche nelle settimane pesanti",
-  "Riconosco a voce alta i piccoli progressi del team",
-  "Faccio in modo che lavorare nel mio gruppo sia piacevole",
-  "Rilancio il morale dopo un insuccesso",
-  "Preferisco incoraggiare che segnalare gli errori",
-  "La mia energia condiziona il clima della squadra",
-  "Tengo alto il morale nei periodi di carico",
-  "Riconosco a voce alta anche i piccoli risultati"
- ],
- "relazione": [
-  "Costruisco un rapporto personale con ogni collaboratore",
-  "Rendo meglio con un team che conosco da tempo",
-  "Impiego tempo prima di fidarmi di una persona nuova",
-  "Difendo i miei collaboratori anche fuori dal team",
-  "Conosco la vita dei miei collaboratori oltre il lavoro",
-  "Cambiare spesso squadra mi costa molto",
-  "Conosco bene la situazione personale dei miei collaboratori",
-  "Costruisco fiducia nel tempo, non subito"
- ],
- "analitico": [
-  "Chiedo dati prima di approvare una proposta del team",
-  "Valuto i collaboratori su indicatori misurabili",
-  "Cerco la causa quando un risultato non torna",
-  "Metto in discussione le conclusioni troppo rapide",
-  "Chiedo tempo per verificare prima di dare l'ok",
-  "Diffido delle valutazioni basate su impressioni",
-  "Chiedo numeri prima di accettare una spiegazione",
-  "Analizzo i dati prima dei colloqui di valutazione"
- ],
- "ideazione": [
-  "Propongo al team modi nuovi di fare le stesse cose",
-  "Incoraggio i collaboratori a sperimentare",
-  "Mi annoio a gestire processi sempre uguali",
-  "Riformulo il problema quando il gruppo si blocca",
-  "Genero alternative anche quando una soluzione esiste già",
-  "Cambio approccio appena ne vedo uno migliore",
-  "Propongo al team modi nuovi di organizzare il lavoro",
-  "Mi stanca ripetere sempre lo stesso processo"
- ],
- "apprendimento": [
-  "Investo nella formazione dei collaboratori",
-  "Introduco nel team strumenti e metodi nuovi",
-  "Mi metto a studiare quando il team affronta qualcosa di ignoto",
-  "Chiedo ai collaboratori di insegnarmi ciò che sanno",
-  "Affronto volentieri progetti mai fatti prima",
-  "Imparo insieme alla squadra invece di sapere già tutto",
-  "Faccio formazione insieme ai collaboratori",
-  "Accolgo con curiosità gli strumenti nuovi"
- ],
- "contesto": [
-  "Spiego ai nuovi la storia del team e dei progetti",
-  "Prima di cambiare un metodo chiedo perché era stato scelto",
-  "Ricordo come sono andate le cose in passato",
-  "Uso i precedenti per orientare le decisioni del gruppo",
-  "Riconosco quando il team ripete un vecchio errore",
-  "Do valore all'esperienza accumulata dai collaboratori",
-  "Spiego da dove viene ogni regola che applico",
-  "Guardo come è andata in passato prima di ripetere"
- ],
- "visione-futura": [
-  "Descrivo al team dove vogliamo arrivare fra qualche anno",
-  "Motivo i collaboratori con una prospettiva di lungo periodo",
-  "Faccio fatica a concentrarmi solo sull'operatività",
-  "Parlo spesso di come potrebbe evolvere il nostro lavoro",
-  "Anticipo al team i cambiamenti che vedo arrivare",
-  "Do senso alla fatica di oggi mostrando il domani",
-  "Parlo con i collaboratori del loro percorso a lungo termine",
-  "Preparo il team a scenari che oggi non esistono ancora"
- ],
- "raccolta": [
-  "Raccolgo informazioni prima di decidere per il team",
-  "Metto a disposizione dei collaboratori materiale e riferimenti",
-  "Sono io a cercare i dati quando il gruppo ne ha bisogno",
-  "Voglio saperne di più prima di cambiare qualcosa",
-  "Archivio la documentazione dei progetti del team",
-  "Approfondisco molto prima di dare indicazioni",
-  "Fornisco ai collaboratori materiale e riferimenti utili",
-  "Raccolgo informazioni prima di prendere decisioni sul team"
- ],
- "riflessione": [
-  "Ho bisogno di riflettere prima di rispondere ai collaboratori",
-  "Preferisco pensare da solo prima di riunire il gruppo",
-  "Il mio silenzio in riunione è elaborazione, non disinteresse",
-  "Chiedo i materiali in anticipo per prepararmi",
-  "Pondero a lungo le decisioni sulle persone",
-  "Faccio domande che spingono il team a ragionare più a fondo",
-  "Chiedo tempo prima di rispondere a una richiesta",
-  "Rifletto a lungo prima di parlare con una persona"
- ],
- "strategia": [
-  "Vedo subito quale strada conviene far prendere al team",
-  "Scarto rapidamente le opzioni che non porteranno da nessuna parte",
-  "Anticipo le conseguenze delle scelte del gruppo",
-  "Faccio fatica a spiegare ai collaboratori come ci sono arrivato",
-  "Riconosco i vicoli ciechi prima che il team ci entri",
-  "Riduco a poche opzioni le situazioni complicate",
-  "Indico ai collaboratori la strada più efficiente",
-  "Elimino in anticipo le opzioni che non funzioneranno"
- ]
+  "tensione-produttiva": [
+    "Assegno ai miei collaboratori carichi di lavoro pieni",
+    "Valuto le persone soprattutto da quanto portano a termine",
+    "Mi infastidisce vedere qualcuno del team fermo",
+    "Nei colloqui parto sempre dai risultati raggiunti",
+    "Do l'esempio arrivando prima e finendo dopo",
+    "Preferisco un collaboratore instancabile a uno brillante",
+    "Controllo l'avanzamento dei collaboratori più volte a settimana",
+    "Mi aspetto che ciascuno chiuda qualcosa ogni giorno"
+  ],
+  "ordinamento-complessita": [
+    "Do al team un calendario condiviso e lo faccio rispettare",
+    "Scrivo procedure per le attività che si ripetono",
+    "Voglio sapere chi fa cosa entro quando",
+    "Le riunioni le preparo con un ordine del giorno preciso",
+    "Mi disturba quando i collaboratori improvvisano il metodo",
+    "Divido i progetti in fasi con un responsabile per ciascuna",
+    "Do a ogni collaboratore una scaletta chiara delle priorità",
+    "Voglio che il lavoro del team segua sempre lo stesso metodo"
+  ],
+  "vincolo-impegno": [
+    "Copro io le mancanze del team davanti agli altri",
+    "Verifico personalmente il lavoro prima che esca",
+    "Prendo su di me gli impegni che il gruppo non riesce a chiudere",
+    "Considero un debito personale ogni promessa fatta ai collaboratori",
+    "Faccio tardi io piuttosto che consegnare in ritardo",
+    "Mi sento in colpa quando qualcuno del team fallisce",
+    "Verifico di persona i lavori che escono a nome del team",
+    "Non prometto ai collaboratori cose che non posso garantire"
+  ],
+  "riconfigurazione-risorse": [
+    "Sposto le persone da un'attività all'altra secondo il bisogno",
+    "Rimescolo le assegnazioni quando vedo un assetto migliore",
+    "Gestisco i carichi di lavoro di tutti come un unico puzzle",
+    "Trovo sempre il modo di far incastrare turni e disponibilità",
+    "Cambio la composizione dei gruppi di lavoro con facilità",
+    "So chi spostare quando salta una risorsa",
+    "Riassegno i compiti quando qualcuno è sovraccarico",
+    "Riesco a far quadrare disponibilità e scadenze di tutti"
+  ],
+  "principi-non-negoziabili": [
+    "Spiego ai collaboratori il senso di quello che chiedo",
+    "Non chiedo al team cose che non condivido",
+    "Valuto le persone anche su come raggiungono i risultati",
+    "Difendo le mie convinzioni anche con i superiori",
+    "Voglio che il gruppo lavori in modo corretto, non solo efficace",
+    "Rifiuto scorciatoie che considero sbagliate",
+    "Chiedo ai collaboratori di lavorare nel modo che ritengo corretto",
+    "Motivo le richieste spiegando perché contano"
+  ],
+  "uniformita-trattamento": [
+    "Assegno compiti e riconoscimenti con criteri dichiarati",
+    "Evito di avere collaboratori preferiti",
+    "Applico le regole allo stesso modo con tutti",
+    "Motivo pubblicamente ogni eccezione che concedo",
+    "Controllo che i carichi di lavoro siano distribuiti equamente",
+    "Mi accorgo quando qualcuno riceve un trattamento diverso",
+    "Distribuisco i lavori sgraditi a rotazione",
+    "Uso gli stessi parametri per valutare tutti"
+  ],
+  "cautela-preventiva": [
+    "Verifico il lavoro dei collaboratori prima di approvarlo",
+    "Non lancio un progetto finché non ho valutato i rischi",
+    "Metto in guardia il team sugli scenari peggiori",
+    "Concedo autonomia gradualmente, non subito",
+    "Preferisco un collaboratore affidabile a uno veloce",
+    "Prendo tempo prima di promettere qualcosa al team",
+    "Non lascio autonomia piena finché non ho visto lavorare la persona",
+    "Segnalo i rischi ai collaboratori prima che partano"
+  ],
+  "filtro-direzionale": [
+    "Do a ciascuno un obiettivo alla volta",
+    "Proteggo il team dalle richieste che non c'entrano",
+    "Ripeto la priorità finché non è chiara a tutti",
+    "Taglio dalle riunioni tutto ciò che non serve all'obiettivo",
+    "Mi infastidisce quando un collaboratore si disperde",
+    "Riporto le persone sul risultato quando divagano",
+    "Do una sola priorità alla volta a ciascuno",
+    "Rimuovo dal team le attività che non portano al risultato"
+  ],
+  "riparazione-guasto": [
+    "Intervengo appena vedo un collaboratore in difficoltà",
+    "Noto per primo cosa non va nel lavoro consegnato",
+    "Prendo in carico personalmente le situazioni compromesse",
+    "Do feedback soprattutto su ciò che va corretto",
+    "Mi attivo quando un processo del team smette di funzionare",
+    "Preferisco recuperare una persona che sostituirla",
+    "Intervengo subito sulle prestazioni che calano",
+    "Individuo l'errore prima che il cliente se ne accorga"
+  ],
+  "efficacia-espositiva": [
+    "Spiego le decisioni aziendali in modo che il team le capisca",
+    "Uso esempi concreti quando assegno un compito",
+    "Curo molto come comunico le notizie difficili",
+    "Faccio riunioni in cui le persone capiscono davvero il punto",
+    "Verifico che il messaggio sia arrivato a ciascuno",
+    "Racconto al gruppo il senso dei numeri",
+    "Riformulo le richieste finché non sono chiare a tutti",
+    "Preparo con cura come comunicare le notizie difficili"
+  ],
+  "passaggio-azione": [
+    "Faccio partire i collaboratori anche senza istruzioni complete",
+    "Preferisco che il team impari provando",
+    "Sblocco io le situazioni in cui nessuno si muove",
+    "Metto fretta quando la discussione si allunga",
+    "Assegno compiti nuovi senza troppa preparazione",
+    "Chiedo prototipi rapidi invece di analisi lunghe",
+    "Faccio partire i collaboratori e correggo strada facendo",
+    "Chiedo un primo risultato rapido invece di un piano dettagliato"
+  ],
+  "sicurezza-giudizio": [
+    "Decido senza consultare il team quando serve",
+    "Do autonomia ampia perché mi fido del mio giudizio nel sceglierla",
+    "Non cerco conferme prima di comunicare una decisione",
+    "Resto fermo sulle mie posizioni davanti alle obiezioni",
+    "Mi assumo scelte impopolari senza esitare",
+    "Gestisco i momenti critici senza perdere sicurezza",
+    "Do autonomia ampia fin da subito",
+    "Decido io quando il gruppo non trova un accordo"
+  ],
+  "presa-di-posizione": [
+    "Dico chiaramente a un collaboratore quando qualcosa non va",
+    "Non rimando le conversazioni difficili",
+    "Prendo il controllo quando il gruppo si perde",
+    "Metto sul tavolo i temi che nessuno solleva",
+    "Sono diretto anche quando il messaggio è duro",
+    "Chiudo io le discussioni che si trascinano",
+    "Affronto subito i comportamenti che non vanno",
+    "Dico chiaramente a una persona che non sta andando bene"
+  ],
+  "confronto-con-il-risultato": [
+    "Confronto le prestazioni dei collaboratori fra loro",
+    "Uso obiettivi e classifiche per spingere il team",
+    "Voglio che il mio gruppo faccia meglio degli altri",
+    "Premio chi ottiene i risultati migliori",
+    "Mostro pubblicamente chi sta andando meglio",
+    "Alzo il target quando il team lo raggiunge troppo facilmente",
+    "Metto a confronto i risultati dei collaboratori",
+    "Premio in modo visibile chi ottiene di più"
+  ],
+  "innalzamento-eccellenza": [
+    "Assegno a ciascuno i compiti in cui è già bravo",
+    "Investo più tempo sui collaboratori migliori",
+    "Chiedo di rifinire finché il lavoro non è eccellente",
+    "Sviluppo i punti di forza invece di correggere le lacune",
+    "Faccio fatica ad accettare consegne appena sufficienti",
+    "Punto a portare il team da buono a ottimo",
+    "Assegno a ciascuno ciò in cui è più forte",
+    "Chiedo di migliorare anche i lavori già buoni"
+  ],
+  "impronta-riconoscibile": [
+    "Do ai collaboratori occasioni per farsi notare",
+    "Scelgo per il team i progetti che contano",
+    "Voglio che si parli dei risultati del mio gruppo",
+    "Porto le persone migliori davanti al management",
+    "Mi motiva guidare un team di cui si parla bene",
+    "Cerco per il gruppo incarichi prestigiosi",
+    "Do visibilità ai collaboratori che se la meritano",
+    "Scelgo per il team incarichi di prestigio"
+  ],
+  "apertura-contatto-nuovo": [
+    "Costruisco rapporti cordiali con tutti i collaboratori",
+    "Accolgo personalmente ogni nuovo arrivato",
+    "Presento i miei ai referenti delle altre funzioni",
+    "Creo occasioni informali per il gruppo",
+    "Mi è facile parlare con chiunque nel team",
+    "Apro porte ai collaboratori grazie ai miei contatti",
+    "Creo occasioni informali per far conoscere il gruppo",
+    "Accolgo personalmente chi entra nel team"
+  ],
+  "lettura-stati-emotivi": [
+    "Mi accorgo quando un collaboratore non sta bene",
+    "Chiedo come stanno le persone prima di chiedere i risultati",
+    "Rimando un richiamo se percepisco che la persona è fragile",
+    "Colgo le tensioni fra colleghi prima che diventino esplicite",
+    "Adatto il tono ai colloqui difficili con molta attenzione",
+    "Il malessere di un collaboratore mi resta addosso",
+    "Mi accorgo se un collaboratore sta attraversando un momento difficile",
+    "Adatto le richieste allo stato d'animo della persona"
+  ],
+  "ricerca-terreno-comune": [
+    "Cerco di comporre i contrasti dentro il team",
+    "Preferisco che il gruppo sia d'accordo prima di procedere",
+    "Evito di alimentare discussioni che considero inutili",
+    "Faccio da mediatore fra collaboratori in disaccordo",
+    "Smusso i messaggi duri prima di trasmetterli",
+    "Voglio che tutti si siano espressi prima di decidere",
+    "Intervengo per ricomporre i contrasti nel gruppo",
+    "Preferisco una soluzione accettata da tutti"
+  ],
+  "riconoscimento-potenziale": [
+    "Dedico tempo alla crescita di ciascun collaboratore",
+    "Assegno compiti che spingono le persone oltre il loro livello",
+    "Faccio colloqui di sviluppo anche quando non sono obbligatori",
+    "Insisto su chi ha potenziale anche se ora rende poco",
+    "Preferisco far crescere qualcuno che sostituirlo",
+    "Mi soddisfa più il progresso dei miei che i miei risultati",
+    "Assegno compiti che fanno crescere, non solo che servono",
+    "Do feedback di sviluppo anche fuori dai colloqui formali"
+  ],
+  "aderenza-al-presente": [
+    "Riorganizzo il lavoro del team in giornata quando serve",
+    "Accolgo senza irrigidirmi i cambi di priorità dall'alto",
+    "Gestisco le assenze improvvise senza andare in crisi",
+    "Preferisco riassegnare al volo che rifare il piano",
+    "Le urgenze del team non mi destabilizzano",
+    "Cambio approccio con un collaboratore se quello scelto non funziona",
+    "Riorganizzo il lavoro del team in giornata",
+    "Non mi irrigidisco quando salta il programma"
+  ],
+  "percezione-dei-legami": [
+    "Spiego a ciascuno come il suo lavoro serve agli altri",
+    "Collego il team con le funzioni che ne dipendono",
+    "Faccio capire l'impatto del nostro lavoro fuori dal reparto",
+    "Considero le conseguenze delle mie decisioni su altri gruppi",
+    "Do un senso più ampio anche ai compiti ripetitivi",
+    "Curo i rapporti fra il mio team e il resto dell'organizzazione",
+    "Faccio vedere a ciascuno a cosa serve il suo lavoro",
+    "Curo i rapporti del team con gli altri reparti"
+  ],
+  "allargamento-del-gruppo": [
+    "Verifico che nessuno del team resti tagliato fuori",
+    "Chiedo l'opinione dei collaboratori più silenziosi",
+    "Coinvolgo tutti nelle decisioni che li riguardano",
+    "Presento i nuovi arrivati a tutto il gruppo",
+    "Mi disturba quando si formano sottogruppi chiusi",
+    "Faccio in modo che le informazioni arrivino a tutti allo stesso modo",
+    "Verifico che tutti abbiano le stesse informazioni",
+    "Coinvolgo anche chi tende a restare in disparte"
+  ],
+  "differenziazione-persona": [
+    "Gestisco ciascun collaboratore in modo diverso",
+    "So cosa motiva ognuno delle persone che seguo",
+    "Assegno i compiti guardando il carattere oltre alle competenze",
+    "Adatto il modo di dare feedback alla singola persona",
+    "Compongo i gruppi di lavoro pensando alle affinità",
+    "Noto differenze fra i collaboratori che agli altri sfuggono",
+    "Uso parole diverse con persone diverse",
+    "Costruisco obiettivi su misura per ciascuno"
+  ],
+  "alleggerimento-clima": [
+    "Porto buonumore anche nelle settimane pesanti",
+    "Riconosco a voce alta i piccoli progressi del team",
+    "Faccio in modo che lavorare nel mio gruppo sia piacevole",
+    "Rilancio il morale dopo un insuccesso",
+    "Preferisco incoraggiare che segnalare gli errori",
+    "La mia energia condiziona il clima della squadra",
+    "Tengo alto il morale nei periodi di carico",
+    "Riconosco a voce alta anche i piccoli risultati"
+  ],
+  "profondita-dei-legami": [
+    "Costruisco un rapporto personale con ogni collaboratore",
+    "Rendo meglio con un team che conosco da tempo",
+    "Impiego tempo prima di fidarmi di una persona nuova",
+    "Difendo i miei collaboratori anche fuori dal team",
+    "Conosco la vita dei miei collaboratori oltre il lavoro",
+    "Cambiare spesso squadra mi costa molto",
+    "Conosco bene la situazione personale dei miei collaboratori",
+    "Costruisco fiducia nel tempo, non subito"
+  ],
+  "richiesta-di-prove": [
+    "Chiedo dati prima di approvare una proposta del team",
+    "Valuto i collaboratori su indicatori misurabili",
+    "Cerco la causa quando un risultato non torna",
+    "Metto in discussione le conclusioni troppo rapide",
+    "Chiedo tempo per verificare prima di dare l'ok",
+    "Diffido delle valutazioni basate su impressioni",
+    "Chiedo numeri prima di accettare una spiegazione",
+    "Analizzo i dati prima dei colloqui di valutazione"
+  ],
+  "accostamento-inatteso": [
+    "Propongo al team modi nuovi di fare le stesse cose",
+    "Incoraggio i collaboratori a sperimentare",
+    "Mi annoio a gestire processi sempre uguali",
+    "Riformulo il problema quando il gruppo si blocca",
+    "Genero alternative anche quando una soluzione esiste già",
+    "Cambio approccio appena ne vedo uno migliore",
+    "Propongo al team modi nuovi di organizzare il lavoro",
+    "Mi stanca ripetere sempre lo stesso processo"
+  ],
+  "piacere-di-imparare": [
+    "Investo nella formazione dei collaboratori",
+    "Introduco nel team strumenti e metodi nuovi",
+    "Mi metto a studiare quando il team affronta qualcosa di ignoto",
+    "Chiedo ai collaboratori di insegnarmi ciò che sanno",
+    "Affronto volentieri progetti mai fatti prima",
+    "Imparo insieme alla squadra invece di sapere già tutto",
+    "Faccio formazione insieme ai collaboratori",
+    "Accolgo con curiosità gli strumenti nuovi"
+  ],
+  "ricorso-al-precedente": [
+    "Spiego ai nuovi la storia del team e dei progetti",
+    "Prima di cambiare un metodo chiedo perché era stato scelto",
+    "Ricordo come sono andate le cose in passato",
+    "Uso i precedenti per orientare le decisioni del gruppo",
+    "Riconosco quando il team ripete un vecchio errore",
+    "Do valore all'esperienza accumulata dai collaboratori",
+    "Spiego da dove viene ogni regola che applico",
+    "Guardo come è andata in passato prima di ripetere"
+  ],
+  "nitidezza-del-possibile": [
+    "Descrivo al team dove vogliamo arrivare fra qualche anno",
+    "Motivo i collaboratori con una prospettiva di lungo periodo",
+    "Faccio fatica a concentrarmi solo sull'operatività",
+    "Parlo spesso di come potrebbe evolvere il nostro lavoro",
+    "Anticipo al team i cambiamenti che vedo arrivare",
+    "Do senso alla fatica di oggi mostrando il domani",
+    "Parlo con i collaboratori del loro percorso a lungo termine",
+    "Preparo il team a scenari che oggi non esistono ancora"
+  ],
+  "accumulo-informativo": [
+    "Raccolgo informazioni prima di decidere per il team",
+    "Metto a disposizione dei collaboratori materiale e riferimenti",
+    "Sono io a cercare i dati quando il gruppo ne ha bisogno",
+    "Voglio saperne di più prima di cambiare qualcosa",
+    "Archivio la documentazione dei progetti del team",
+    "Approfondisco molto prima di dare indicazioni",
+    "Fornisco ai collaboratori materiale e riferimenti utili",
+    "Raccolgo informazioni prima di prendere decisioni sul team"
+  ],
+  "attivita-di-pensiero": [
+    "Ho bisogno di riflettere prima di rispondere ai collaboratori",
+    "Preferisco pensare da solo prima di riunire il gruppo",
+    "Il mio silenzio in riunione è elaborazione, non disinteresse",
+    "Chiedo i materiali in anticipo per prepararmi",
+    "Pondero a lungo le decisioni sulle persone",
+    "Faccio domande che spingono il team a ragionare più a fondo",
+    "Chiedo tempo prima di rispondere a una richiesta",
+    "Rifletto a lungo prima di parlare con una persona"
+  ],
+  "selezione-del-percorso": [
+    "Vedo subito quale strada conviene far prendere al team",
+    "Scarto rapidamente le opzioni che non porteranno da nessuna parte",
+    "Anticipo le conseguenze delle scelte del gruppo",
+    "Faccio fatica a spiegare ai collaboratori come ci sono arrivato",
+    "Riconosco i vicoli ciechi prima che il team ci entri",
+    "Riduco a poche opzioni le situazioni complicate",
+    "Indico ai collaboratori la strada più efficiente",
+    "Elimino in anticipo le opzioni che non funzioneranno"
+  ]
 }

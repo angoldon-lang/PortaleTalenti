@@ -39,6 +39,21 @@ GALLUP_DOMAINS_EN = ['executing', 'influencing', 'relationship building', 'strat
 STATEMENTS = os.path.join(ROOT, 'scripts', 'mpf', 'affermazioni')
 BLOCKS = os.path.join(ROOT, 'src', 'content', 'mpf', 'blocks.ts')
 
+# Traduzioni italiane dirette delle denominazioni note. Un portale in italiano
+# non incontra il termine inglese ma la sua resa più ovvia: è lì che la
+# somiglianza si ripresenta, ed è lì che va controllata.
+TRADUZIONI_NOTE = [
+    'Realizzatore', 'Organizzazione', 'Responsabilità', 'Coordinatore', 'Valori', 'Equità',
+    'Prudenza', 'Focalizzazione', 'Risolutore', 'Comunicazione', 'Attivatore', 'Fiducia in Sé',
+    'Assertività', 'Competizione', 'Massimizzatore', 'Riconoscimento', 'Socievolezza', 'Empatia',
+    'Armonia', 'Sviluppatore', 'Adattabilità', 'Connessione', 'Inclusione', 'Individualizzazione',
+    'Positività', 'Relazione', 'Analitico', 'Ideazione', 'Apprendimento', 'Contesto',
+    'Visione Futura', 'Raccolta', 'Riflessione', 'Strategia', 'Carisma Sociale',
+]
+
+DOMINI_TRADOTTI = ['Esecuzione', 'Influenza', 'Relazioni', 'Pensiero Strategico',
+                   'Costruzione di Relazioni']
+
 TRADEMARKS = ['gallup', 'cliftonstrengths', 'clifton strengths', 'strengthsfinder', 'strengths finder']
 
 
@@ -80,26 +95,51 @@ def main():
             failures.append(label)
 
     print('Verifica di indipendenza della tassonomia\n')
-    print(f'Modello: {len(area_names)} aree, {len(trait_names)} tratti')
-    print(f'Legacy nel portale: 4 domini, {len(legacy_names)} temi\n')
+    print(f'Modello corrente: {len(area_names)} aree, {len(trait_names)} tratti')
+    print(f'Modello precedente: 4 macro-aree, {len(legacy_names)} temi\n')
 
     print('1. Collisioni con le denominazioni dei talenti di terzi')
-    forbidden = {norm(x) for x in GALLUP_EN} | {norm(x) for x in legacy_names}
+    forbidden = {norm(x) for x in GALLUP_EN}
     collisions = [n for n in trait_names if norm(n) in forbidden]
     check('nessun nome di tratto coincide con una denominazione nota',
           not collisions, ', '.join(collisions))
 
+    # Il modello precedente resta attivo nel portale, quindi è esposto quanto
+    # quello nuovo: va controllato con lo stesso metro, non dato per buono
+    # perché più vecchio.
+    legacy_collisions = [n for n in legacy_names if norm(n) in forbidden]
+    check('nessun nome del modello precedente coincide con una denominazione nota',
+          not legacy_collisions, ', '.join(legacy_collisions))
+
+    # Le traduzioni italiane più dirette delle denominazioni note: è la forma in
+    # cui il rischio si ripresenta in un portale in italiano.
+    traduzioni = {norm(x) for x in TRADUZIONI_NOTE}
+    tradotti = [n for n in trait_names + legacy_names if norm(n) in traduzioni]
+    check('nessun nome è una traduzione diretta di una denominazione nota',
+          not tradotti, ', '.join(tradotti))
+
+    # I due modelli convivono nello stesso portale: nomi uguali renderebbero
+    # illeggibile un confronto fra i due report della stessa persona.
+    overlap = {norm(x) for x in trait_names} & {norm(x) for x in legacy_names}
+    check('i due modelli non condividono denominazioni', not overlap, ', '.join(sorted(overlap)))
+
     print('2. Collisioni con i nomi dei domini')
     forbidden_areas = {norm(x) for x in GALLUP_DOMAINS_EN} | {
-        norm(x) for x in ['Esecuzione', 'Influenza', 'Relazioni', 'Pensiero Strategico']}
-    area_collisions = [n for n in area_names if norm(n) in forbidden_areas]
+        norm(x) for x in DOMINI_TRADOTTI}
+    legacy_areas = values(LEGACY, 'label')
+    area_collisions = [n for n in area_names + legacy_areas if norm(n) in forbidden_areas]
     check('nessun nome di area coincide con un dominio noto',
           not area_collisions, ', '.join(area_collisions))
 
     print('3. Marchi registrati nei contenuti')
     # Il controllo copre tutto ciò che raggiunge la persona: la tassonomia, le
     # affermazioni degli item e i blocchi generati.
-    corpus = {'modello': model_source}
+    corpus = {'modello': model_source, 'modello precedente': open(LEGACY, encoding='utf-8').read()}
+    for extra in ('src/content/assessments.ts', 'src/content/questions.ts'):
+        path = os.path.join(ROOT, extra)
+        if os.path.exists(path):
+            with open(path, encoding='utf-8') as fh:
+                corpus[extra.split('/')[-1]] = fh.read()
     for name in sorted(os.listdir(STATEMENTS)):
         if name.endswith('.json'):
             with open(os.path.join(STATEMENTS, name), encoding='utf-8') as fh:

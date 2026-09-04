@@ -33,14 +33,14 @@ STATEMENTS = os.path.join(ROOT, 'scripts', 'statements')
 
 # I 34 temi nell'ordine del catalogo, raggruppati per macro-area.
 DOMAINS = {
-    'EXECUTING': ['realizzatore', 'organizzazione', 'responsabilita', 'coordinatore',
-                  'valori', 'equita', 'prudenza', 'focalizzazione', 'risolutore'],
-    'INFLUENCING': ['comunicazione', 'attivatore', 'fiducia-in-se', 'assertivita',
-                    'competizione', 'massimizzatore', 'riconoscimento', 'socievolezza'],
-    'RELATIONSHIP': ['empatia', 'armonia', 'sviluppatore', 'adattabilita', 'connessione',
-                     'inclusione', 'individualizzazione', 'positivita', 'relazione'],
-    'STRATEGIC': ['analitico', 'ideazione', 'apprendimento', 'contesto', 'visione-futura',
-                  'raccolta', 'riflessione', 'strategia'],
+    'OPERATIONAL': ['tensione-produttiva', 'ordinamento-complessita', 'vincolo-impegno', 'riconfigurazione-risorse',
+                  'principi-non-negoziabili', 'uniformita-trattamento', 'cautela-preventiva', 'filtro-direzionale', 'riparazione-guasto'],
+    'INTERPERSONAL': ['efficacia-espositiva', 'passaggio-azione', 'sicurezza-giudizio', 'presa-di-posizione',
+                    'confronto-con-il-risultato', 'innalzamento-eccellenza', 'impronta-riconoscibile', 'apertura-contatto-nuovo'],
+    'SUPPORTIVE': ['lettura-stati-emotivi', 'ricerca-terreno-comune', 'riconoscimento-potenziale', 'aderenza-al-presente', 'percezione-dei-legami',
+                     'allargamento-del-gruppo', 'differenziazione-persona', 'alleggerimento-clima', 'profondita-dei-legami'],
+    'COGNITIVE': ['richiesta-di-prove', 'accostamento-inatteso', 'piacere-di-imparare', 'ricorso-al-precedente', 'nitidezza-del-possibile',
+                  'accumulo-informativo', 'attivita-di-pensiero', 'selezione-del-percorso'],
 }
 DOMAIN_OF = {slug: d for d, slugs in DOMAINS.items() for slug in slugs}
 

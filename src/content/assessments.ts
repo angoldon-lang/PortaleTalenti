@@ -27,7 +27,7 @@ export type AssessmentSeed = {
 export const ASSESSMENTS: AssessmentSeed[] = [
   {
     slug: 'core12',
-    name: 'Talenti Essenziale',
+    name: 'Inventario dei Talenti — Essenziale',
     subtitle: '12 temi · 66 domande · ~22 minuti',
     description:
       'Il percorso più breve per avere un primo profilo. Confronta i 12 temi fondamentali, tre per ciascuna macro-area, e restituisce i tuoi 5 talenti dominanti. È il punto di partenza consigliato se non hai mai fatto un assessment di questo tipo.',
@@ -39,7 +39,7 @@ export const ASSESSMENTS: AssessmentSeed[] = [
   },
   {
     slug: 'full34',
-    name: 'CliftonStrengths 34',
+    name: 'Inventario dei Talenti — Completo',
     subtitle: '34 temi · 136 domande · ~45 minuti',
     description:
       'Il profilo completo: tutti i 34 temi di talento ordinati dal primo all’ultimo. Oltre alla Top 10 in evidenza, vedi anche i temi di coda — quelli su cui conviene appoggiarsi ad altri invece di investire energie. È l’assessment di riferimento del portale.',
@@ -51,7 +51,7 @@ export const ASSESSMENTS: AssessmentSeed[] = [
   },
   {
     slug: 'leaders',
-    name: 'CliftonStrengths for Leaders',
+    name: 'Inventario dei Talenti — Leadership',
     subtitle: '34 temi · 136 domande · ~45 minuti',
     description:
       'Le stesse 34 dimensioni, ma osservate mentre guidi: le affermazioni parlano di direzione, decisioni difficili, dissenso e fiducia. Il report spiega come ciascun talento dominante si esprime nel ruolo di chi guida, e quale rovescio della medaglia presidiare.',
@@ -63,7 +63,7 @@ export const ASSESSMENTS: AssessmentSeed[] = [
   },
   {
     slug: 'managers',
-    name: 'CliftonStrengths for Managers',
+    name: 'Inventario dei Talenti — Gestione del Team',
     subtitle: '34 temi · 136 domande · ~45 minuti',
     description:
       'Centrato sulla gestione quotidiana di un team: deleghe, feedback, carichi di lavoro, crescita delle persone. Il report traduce i tuoi talenti in indicazioni pratiche su come far rendere al meglio ciascun collaboratore.',

@@ -169,10 +169,10 @@ export function buildReportModel(report: FullReport): ReportModel {
   }
 
   const legacyValues: Record<string, number | null> = {
-    EXECUTING: report.executingScore,
-    INFLUENCING: report.influencingScore,
-    RELATIONSHIP: report.relationshipScore,
-    STRATEGIC: report.strategicScore,
+    OPERATIONAL: report.executingScore,
+    INTERPERSONAL: report.influencingScore,
+    SUPPORTIVE: report.relationshipScore,
+    COGNITIVE: report.strategicScore,
   };
 
   const groups: ReportGroup[] = DOMAIN_ORDER.map((domain) => ({

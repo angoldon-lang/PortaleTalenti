@@ -35,7 +35,7 @@ const config: Config = {
           900: 'rgb(var(--brand-900) / <alpha-value>)',
           950: 'rgb(var(--brand-950) / <alpha-value>)',
         },
-        // Colori delle 4 macro-aree Gallup
+        // Colori delle 4 macro-aree del modello precedente
         executing: '#7c3aed',
         influencing: '#ea580c',
         relationship: '#0891b2',

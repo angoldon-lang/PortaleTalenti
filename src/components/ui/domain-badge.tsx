@@ -3,10 +3,10 @@ import { DOMAIN_META } from '@/content/themes';
 import { cn } from '@/lib/utils';
 
 const styles: Record<Domain, string> = {
-  EXECUTING: 'bg-violet-50 text-violet-800 ring-violet-200',
-  INFLUENCING: 'bg-orange-50 text-orange-800 ring-orange-200',
-  RELATIONSHIP: 'bg-cyan-50 text-cyan-800 ring-cyan-200',
-  STRATEGIC: 'bg-green-50 text-green-800 ring-green-200',
+  OPERATIONAL: 'bg-violet-50 text-violet-800 ring-violet-200',
+  INTERPERSONAL: 'bg-orange-50 text-orange-800 ring-orange-200',
+  SUPPORTIVE: 'bg-cyan-50 text-cyan-800 ring-cyan-200',
+  COGNITIVE: 'bg-green-50 text-green-800 ring-green-200',
 };
 
 export function DomainBadge({ domain, className }: { domain: Domain; className?: string }) {

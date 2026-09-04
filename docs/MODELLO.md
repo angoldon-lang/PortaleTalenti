@@ -12,7 +12,7 @@ Documento di riferimento per chi deve capire *cosa misura* il portale e *come*.
 
 ## 1. Le quattro macro-aree
 
-Il modello Gallup raggruppa i temi di talento in quattro modi di contribuire al
+Questo modello raggruppa i temi in quattro modi di contribuire al
 lavoro di un gruppo. Nessuna area vale più delle altre: un team efficace le
 copre tutte.
 
@@ -25,13 +25,15 @@ copre tutte.
 
 ## 2. I trentaquattro temi di talento
 
-La distribuzione fra le aree segue quella del modello Gallup: 9 temi in
+La distribuzione fra le aree è di 9 temi in
 Esecuzione, 8 in Influenza, 9 in Relazioni, 8 in Pensiero Strategico. La
 definizione completa (descrizione, punti di forza, punti ciechi, azioni di
 allenamento, contesti, più le due sezioni per le lenti Leaders e Managers) sta in
 `src/content/themes.ts` ed è quella che alimenta sia la dashboard sia il PDF.
 
-I nomi sono in italiano e originali: il portale è ispirato al modello Gallup, non
+I nomi sono sintagmi descrittivi, rivisti perché nessuno di essi richiami la
+denominazione di uno strumento di terzi: il portale ne condivide l'impianto
+concettuale pubblico, non
 è una traduzione autorizzata della sua nomenclatura.
 
 | Macro-area | Temi |
@@ -41,7 +43,7 @@ I nomi sono in italiano e originali: il portale è ispirato al modello Gallup, n
 | Relazioni (9) | Empatia · Armonia · Sviluppatore · Adattabilità · Connessione · Inclusione · Individualizzazione · Positività · Relazione |
 | Pensiero Strategico (8) | Analitico · Ideazione · Apprendimento · Contesto · Visione Futura · Raccolta · Riflessione · Strategia |
 
-I dodici temi usati dal questionario breve (Talenti Essenziale) sono i primi tre
+I dodici temi usati dal questionario breve (Inventario dei Talenti — Essenziale) sono i primi tre
 di ciascuna area: Realizzatore, Organizzazione, Responsabilità, Comunicazione,
 Attivatore, Fiducia in Sé, Empatia, Armonia, Sviluppatore, Analitico, Ideazione,
 Apprendimento.
@@ -83,8 +85,8 @@ descrive di più* costringe a un compromesso e fa emergere le preferenze reali.
 
 | Questionario | Temi | Item | Comparse per tema | Costruzione |
 | --- | --- | --- | --- | --- |
-| Talenti Essenziale | 12 | 66 | 11 | round-robin completo |
-| CliftonStrengths 34 | 34 | 136 | 8 | design circolante, scarti {1, 6, 11, 16} |
+| Inventario dei Talenti — Essenziale | 12 | 66 | 11 | round-robin completo |
+| Inventario dei Talenti — Completo | 34 | 136 | 8 | design circolante, scarti {1, 6, 11, 16} |
 | for Leaders | 34 | 102 | 6 | design circolante, scarti {2, 7, 12} |
 | for Managers | 34 | 102 | 6 | design circolante, scarti {3, 8, 13} |
 
@@ -131,7 +133,7 @@ recupero è salito a 6,7 su 7. Gli scarti attuali:
 
 | Banca | Scarti | Residui mod 4 |
 | --- | --- | --- |
-| CliftonStrengths 34 | {1, 6, 11, 16} | {1, 2, 3, 0} |
+| Inventario dei Talenti — Completo | {1, 6, 11, 16} | {1, 2, 3, 0} |
 | for Leaders | {2, 7, 9, 12} | {2, 3, 1, 0} |
 | for Managers | {3, 8, 13, 14} | {3, 0, 1, 2} |
 
@@ -270,8 +272,8 @@ Valori di riferimento (20 repliche):
 
 | Questionario | Top K con talenti dominanti | Spearman medio |
 | --- | --- | --- |
-| Talenti Essenziale | 5,0 / 5 | 0.92 – 0.98 |
-| CliftonStrengths 34 | 9,4 / 10 | 0.91 – 0.93 |
+| Inventario dei Talenti — Essenziale | 5,0 / 5 | 0.92 – 0.98 |
+| Inventario dei Talenti — Completo | 9,4 / 10 | 0.91 – 0.93 |
 | for Leaders | 6,7 / 7 | 0.92 – 0.93 |
 | for Managers | 6,9 / 7 | 0.88 – 0.93 |
 
@@ -294,7 +296,7 @@ alta in tutti i casi.
   Le posizioni adiacenti in classifica vanno lette come equivalenti, non come una
   graduatoria stretta.
 - **Non confrontabilità fra questionari**: i quattro strumenti hanno item diversi.
-  La Top 5 di *Talenti Essenziale* e quella di *CliftonStrengths 34* possono
+  La Top 5 di *Inventario dei Talenti — Essenziale* e quella di *Inventario dei Talenti — Completo* possono
   differire legittimamente, anche perché il primo misura 12 temi e il secondo 34.
 - **Uso previsto**: autoconsapevolezza e sviluppo. Non è uno strumento clinico né
   validato per la selezione del personale.

@@ -172,10 +172,10 @@ export function computeScores(
   // Si sommano i punteggi grezzi dei temi di ciascuna area e si riportano a
   // percentuale sul totale: le 4 quote sommano sempre a 100.
   const domainTotals: Record<string, number> = {
-    EXECUTING: 0,
-    INFLUENCING: 0,
-    RELATIONSHIP: 0,
-    STRATEGIC: 0,
+    OPERATIONAL: 0,
+    INTERPERSONAL: 0,
+    SUPPORTIVE: 0,
+    COGNITIVE: 0,
   };
   for (const slug of slugs) {
     const domain = themeDomains[slug];
@@ -183,10 +183,10 @@ export function computeScores(
   }
   const grandTotal = Object.values(domainTotals).reduce((a, b) => a + b, 0);
   const domainScores = {
-    EXECUTING: 0,
-    INFLUENCING: 0,
-    RELATIONSHIP: 0,
-    STRATEGIC: 0,
+    OPERATIONAL: 0,
+    INTERPERSONAL: 0,
+    SUPPORTIVE: 0,
+    COGNITIVE: 0,
   } as DomainScoreResult;
   for (const key of Object.keys(domainTotals) as Domain[]) {
     domainScores[key] = grandTotal > 0 ? round((domainTotals[key] / grandTotal) * 100, 1) : 25;

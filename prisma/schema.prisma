@@ -97,17 +97,18 @@ model VerificationToken {
 // MODULO 3 — Temi di talento, domande, risposte e risultati
 // ===========================================================================
 
-/// Le 4 macro-aree del modello Gallup CliftonStrengths.
+/// Le 4 macro-aree del modello precedente del portale. I valori sono
+/// identificatori interni: le etichette mostrate stanno in `DOMAIN_META`.
 enum Domain {
-  EXECUTING // Esecuzione
-  INFLUENCING // Influenza
-  RELATIONSHIP // Relazioni
-  STRATEGIC // Pensiero Strategico
+  OPERATIONAL // Esecuzione
+  INTERPERSONAL // Influenza
+  SUPPORTIVE // Relazioni
+  COGNITIVE // Pensiero Strategico
 }
 
 model TalentTheme {
   id     String @id @default(cuid())
-  /// Identificatore stabile usato dal motore di calcolo (es. "realizzatore").
+  /// Identificatore stabile usato dal motore di calcolo (es. "tensione-produttiva").
   slug   String @unique
   name   String
   domain Domain
