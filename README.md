@@ -132,6 +132,22 @@ Servono **Node 20.12+** (verificato su Node 22 LTS) e un PostgreSQL
 raggiungibile. La soglia 20.12 è imposta da `process.loadEnvFile()`, usato dallo
 script di seed.
 
+> **Su Debian e Ubuntu non usare il Node dei pacchetti apt.** Quello di
+> `apt install nodejs npm` è Node 18 (sotto la soglia) e porta con sé un npm
+> spacchettato in `/usr/share/nodejs/npm`, che su questo progetto fallisce con
+> `TypeError: Cannot read properties of null (reading 'edgesOut')` mentre
+> risolve le peer dependency di React 19. Non è un problema del progetto e non
+> si aggira con `--force`: serve il Node ufficiale.
+>
+> ```bash
+> sudo apt purge -y nodejs npm && sudo apt autoremove -y
+> curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+> sudo apt install -y nodejs
+> node -v    # v22.x
+> npm -v     # 10.x o 11.x
+> which npm  # /usr/bin/npm, non /usr/share/nodejs/...
+> ```
+
 **1. Il database.** Se non hai già un PostgreSQL locale, con Docker:
 
 ```bash
@@ -384,6 +400,8 @@ fatta insieme all'upgrade a Prisma 7.
 | `Cannot read properties of undefined (reading 'findMany')` oppure `Unknown field ... for select statement` | il client Prisma è più vecchio dello schema: hai applicato le migrazioni senza rigenerarlo. `npx prisma generate`, poi riavvia il server |
 | `Detected additional lockfiles` | hai due checkout annidati (es. `PortaleTalenti/PortaleTalenti`): è solo un avviso di Next, ma assicurati di lanciare i comandi nella cartella giusta |
 | `Cross origin request detected` in sviluppo | stai aprendo l'app dall'IP di rete invece che da `localhost`: è un avviso innocuo, oppure aggiungi `allowedDevOrigins` in `next.config.mjs` |
+| `Cannot read properties of null (reading 'edgesOut')` durante `npm install` | stai usando l'npm dei pacchetti apt di Debian/Ubuntu (`/usr/share/nodejs/npm`): è spacchettato e si rompe sulle peer dependency. Installa Node 22 da NodeSource, vedi *Avvio in locale* |
+| `npx prisma` propone di scaricare `prisma@8.x` | non ci sono `node_modules`: `npx` sta cercando Prisma sul registry invece che in locale. Non accettare (è un major diverso da quello dello schema): fai prima `npm install` |
 | `process.loadEnvFile is not a function` durante il seed | Node più vecchio di 20.12: aggiorna Node |
 | Porta 3000 occupata | `npm run dev -- -p 3001` (e allinea `AUTH_URL`) |
 
