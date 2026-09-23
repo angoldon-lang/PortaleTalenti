@@ -225,6 +225,7 @@ completa l'accesso: l'app funziona comunque con email e password.
 | `NEXT_PUBLIC_QUESTION_TIMER_SECONDS` | no | secondi per item; `0` disattiva il timer |
 | `ADMIN_EMAILS` | no | email promosse ad ADMIN al primo accesso |
 | `SEED_DEMO_USERS` | no | `false` per non creare gli utenti demo |
+| `DEV_ORIGINS` | no | host, separati da virgola e **senza porta**, da cui il server di sviluppo accetta le richieste a `/_next/*`. Serve solo per aprire l'app dall'IP di rete durante lo sviluppo |
 
 ---
 
@@ -399,7 +400,7 @@ fatta insieme all'upgrade a Prisma 7.
 | `Cannot find module '.prisma/client/default'` | il postinstall di `@prisma/client` non è stato eseguito (npm con `allowScripts` attivo): lancia `npx prisma generate` |
 | `Cannot read properties of undefined (reading 'findMany')` oppure `Unknown field ... for select statement` | il client Prisma è più vecchio dello schema: hai applicato le migrazioni senza rigenerarlo. `npx prisma generate`, poi riavvia il server |
 | `Detected additional lockfiles` | hai due checkout annidati (es. `PortaleTalenti/PortaleTalenti`): è solo un avviso di Next, ma assicurati di lanciare i comandi nella cartella giusta |
-| `Cross origin request detected` in sviluppo | stai aprendo l'app dall'IP di rete invece che da `localhost`: è un avviso innocuo, oppure aggiungi `allowedDevOrigins` in `next.config.mjs` |
+| Pagina senza stile, o `Blocked cross-origin request ... to /_next/* resource` | stai aprendo l'app dall'IP di rete: il server di sviluppo risponde **403** a CSS e JavaScript. Metti l'host in `DEV_ORIGINS` nel `.env` (host solo, senza porta) e riavvia |
 | `Cannot read properties of null (reading 'edgesOut')` durante `npm install` | stai usando l'npm dei pacchetti apt di Debian/Ubuntu (`/usr/share/nodejs/npm`): è spacchettato e si rompe sulle peer dependency. Installa Node 22 da NodeSource, vedi *Avvio in locale* |
 | `npx prisma` propone di scaricare `prisma@8.x` | non ci sono `node_modules`: `npx` sta cercando Prisma sul registry invece che in locale. Non accettare (è un major diverso da quello dello schema): fai prima `npm install` |
 | `process.loadEnvFile is not a function` durante il seed | Node più vecchio di 20.12: aggiorna Node |
