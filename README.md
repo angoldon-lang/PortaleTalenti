@@ -225,7 +225,7 @@ completa l'accesso: l'app funziona comunque con email e password.
 | `NEXT_PUBLIC_QUESTION_TIMER_SECONDS` | no | secondi per item; `0` disattiva il timer |
 | `ADMIN_EMAILS` | no | email promosse ad ADMIN al primo accesso |
 | `SEED_DEMO_USERS` | no | `false` per non creare gli utenti demo |
-| `DEV_ORIGINS` | no | host, separati da virgola e **senza porta**, da cui il server di sviluppo accetta le richieste a `/_next/*`. Serve solo per aprire l'app dall'IP di rete durante lo sviluppo |
+| `DEV_ORIGINS` | no | host autorizzati per le richieste a `/_next/*` in sviluppo, separati da virgola e **senza porta**. Da vuota il controllo è disattivato e ogni origine è servita: valorizzarla lo attiva, e gli host non elencati ricevono `403`. Serve dietro proxy o in container, non per il semplice accesso dall'IP di rete |
 
 ---
 
@@ -389,6 +389,22 @@ fatta insieme all'upgrade a Prisma 7.
 
 ## Se qualcosa non parte
 
+Il server di sviluppo non scrive log su file: stampa tutto nel terminale in cui
+gira. Per conservarli, avvialo con `npm run dev 2>&1 | tee /tmp/portale.log`.
+
+Se l'app non si apre da un altro computer, questo comando prova uno per uno
+gli strati in mezzo — versioni, variabili, ascolto sulla porta, firewall,
+risposta da `localhost`, risposta dall'indirizzo che usi, risorse interne,
+database — e chiude elencando cosa correggere:
+
+```bash
+npm run diagnosi:rete -- 3000 10.254.254.90
+```
+
+Il secondo argomento è l'indirizzo che scrivi nel browser: senza, lo script
+può solo interrogare sé stesso e non vede i problemi di raggiungibilità.
+
+
 | Sintomo | Causa e rimedio |
 | --- | --- |
 | `Environment variable not found: DATABASE_URL` | manca il file `.env` (non `.env.example`) nella radice del progetto, oppure la riga è commentata |
@@ -400,7 +416,7 @@ fatta insieme all'upgrade a Prisma 7.
 | `Cannot find module '.prisma/client/default'` | il postinstall di `@prisma/client` non è stato eseguito (npm con `allowScripts` attivo): lancia `npx prisma generate` |
 | `Cannot read properties of undefined (reading 'findMany')` oppure `Unknown field ... for select statement` | il client Prisma è più vecchio dello schema: hai applicato le migrazioni senza rigenerarlo. `npx prisma generate`, poi riavvia il server |
 | `Detected additional lockfiles` | hai due checkout annidati (es. `PortaleTalenti/PortaleTalenti`): è solo un avviso di Next, ma assicurati di lanciare i comandi nella cartella giusta |
-| Pagina senza stile, o `Blocked cross-origin request ... to /_next/* resource` | stai aprendo l'app dall'IP di rete: il server di sviluppo risponde **403** a CSS e JavaScript. Metti l'host in `DEV_ORIGINS` nel `.env` (host solo, senza porta) e riavvia |
+| `Blocked cross-origin request ... to /_next/* resource`, pagina senza stile | hai valorizzato `DEV_ORIGINS` senza elencare l'host che stai usando: aggiungilo (host solo, senza porta) oppure svuota la variabile per disattivare il controllo |
 | `Cannot read properties of null (reading 'edgesOut')` durante `npm install` | stai usando l'npm dei pacchetti apt di Debian/Ubuntu (`/usr/share/nodejs/npm`): è spacchettato e si rompe sulle peer dependency. Installa Node 22 da NodeSource, vedi *Avvio in locale* |
 | `npx prisma` propone di scaricare `prisma@8.x` | non ci sono `node_modules`: `npx` sta cercando Prisma sul registry invece che in locale. Non accettare (è un major diverso da quello dello schema): fai prima `npm install` |
 | `process.loadEnvFile is not a function` durante il seed | Node più vecchio di 20.12: aggiorna Node |

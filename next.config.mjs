@@ -3,15 +3,20 @@ import { fileURLToPath } from 'node:url';
 
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 
-// In sviluppo Next non si limita ad avvisare: risponde 403 alle richieste
-// delle risorse interne (/_next/*) che arrivano da un'origine diversa da
-// quella di avvio. Aprendo l'app dall'IP di rete — un server di prova
-// raggiunto da un altro computer — l'HTML arriva con 200 ma CSS e JavaScript
-// no, quindi la pagina resta senza stile e senza interazioni. DEV_ORIGINS
-// elenca gli host aggiuntivi da autorizzare, separati da virgola:
+// allowedDevOrigins e' un elenco di permessi, e finche' resta assente il
+// server di sviluppo serve le risorse interne (/_next/*) a qualunque origine:
+// verificato su Next 15.5.25, dove un host estraneo riceve comunque 200. Non
+// va quindi impostato per aprire l'app dall'IP di rete, che gia' funziona.
+// Serve quando l'app sta dietro a un proxy o dentro un container e l'indirizzo
+// usato dal browser non e' un indirizzo della macchina che esegue Next, e
+// servira' con le versioni di Next che renderanno il controllo obbligatorio.
+//
+// Attenzione: valorizzarlo attiva il controllo in modo stretto, e da quel
+// momento ogni origine non elencata riceve 403. Vanno quindi indicati tutti
+// gli host usati, come host soli, senza schema e senza porta:
 //   DEV_ORIGINS="10.254.254.90,portale.local"
-// Vanno indicati **senza porta e senza schema**: con "10.254.254.90:3000" il
-// confronto non combacia e la richiesta viene comunque rifiutata.
+// Con "10.254.254.90:3000" il confronto non combacia e la richiesta e'
+// rifiutata lo stesso.
 const devOrigins = (process.env.DEV_ORIGINS ?? '')
   .split(',')
   .map((origin) => origin.trim())
