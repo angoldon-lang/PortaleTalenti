@@ -215,6 +215,17 @@ Sono utenti di sviluppo: disattivali in produzione con `SEED_DEMO_USERS=false`.
 Senza queste variabili il pulsante Google resta visibile ma il provider non
 completa l'accesso: l'app funziona comunque con email e password.
 
+### Il logo dell'Academy
+
+Il logo si carica una volta da **Amministrazione → Personalizzazione** e
+compare da solo in intestazione, nel footer della home e nei PDF: è l'unico
+punto da aggiornare. Formati accettati: PNG, JPEG, SVG.
+
+Finché non ne è stato caricato nessuno, il footer mostra la sola scritta
+«Modello proprietario, sviluppato per Academy», sempre collegata a
+[adacademy.it](https://adacademy.it/). L'indirizzo è in
+`src/components/academy-credit.tsx`, costante `ACADEMY_URL`.
+
 ### Variabili d'ambiente
 
 | Variabile | Obbligatoria | Note |

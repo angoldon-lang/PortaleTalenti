@@ -5,6 +5,7 @@ import { DOMAIN_META, DOMAIN_ORDER, THEMES } from '@/content/themes';
 import { ASSESSMENTS } from '@/content/assessments';
 import { getCurrentUser } from '@/server/guards';
 import { getBranding } from '@/server/settings-service';
+import { AcademyCredit } from '@/components/academy-credit';
 import { BrandMark } from '@/components/brand-mark';
 
 export default async function HomePage() {
@@ -162,10 +163,7 @@ export default async function HomePage() {
       <footer className="border-t border-ink-200/70">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-8 text-sm text-ink-500 sm:px-6">
           <p>{branding.organizationName} — assessment dei punti di forza.</p>
-          <p>
-            Modello proprietario, sviluppato per questo portale. Nessuna affiliazione con
-            fornitori terzi di strumenti di assessment.
-          </p>
+          <AcademyCredit />
         </div>
       </footer>
     </div>
