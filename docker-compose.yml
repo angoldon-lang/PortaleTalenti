@@ -1,0 +1,113 @@
+# Lo stack completo del portale: database, migrazioni, applicazione, proxy
+# HTTPS. Si avvia con:
+#
+#   cp .env.docker.example .env.docker
+#   # compila .env.docker, poi:
+#   bash docker/controlla-porte.sh
+#   bash docker/prepara-certificato.sh
+#   docker compose --env-file .env.docker up -d --build
+#
+# Il file env e' .env.docker e non .env perche' .env resta quello dello
+# sviluppo: nel compose il database si chiama "db", non "localhost".
+#
+# LE PORTE. Un solo servizio pubblica qualcosa: il proxy. L'applicazione e il
+# database restano sulla rete interna del compose, raggiungibili solo fra loro.
+# Il database in particolare NON e' pubblicato: nessuno da fuori arriva alla
+# 5432, e questo e' deliberato. Le porte pubblicate sono due variabili,
+# HTTPS_PORT e HTTP_PORT, in modo da non litigare con quello che la macchina
+# ha gia' in ascolto, e docker/controlla-porte.sh dice se sono libere.
+
+name: portale-talenti
+
+services:
+  # --------------------------------------------------------------------- #
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-portale}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD non impostata in .env.docker}
+      POSTGRES_DB: ${POSTGRES_DB:-portale_talenti}
+      # Evita che l'inizializzazione erediti il locale della macchina ospite.
+      POSTGRES_INITDB_ARGS: '--encoding=UTF8 --locale=C'
+    volumes:
+      - dati-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-portale} -d ${POSTGRES_DB:-portale_talenti}']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  # --------------------------------------------------------------------- #
+  # Applica le migrazioni e semina i dati, poi termina. L'applicazione non
+  # parte prima che questo sia finito bene: cosi' non serve nessuna attesa
+  # dentro il codice, e uno schema a meta' non viene mai servito.
+  migrazioni:
+    build:
+      context: .
+      target: builder
+    command: >
+      sh -c "npx prisma migrate deploy && npx tsx prisma/seed.ts && npx tsx scripts/diagnosi.ts"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-portale}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-portale_talenti}?schema=public
+      SEED_DEMO_USERS: ${SEED_DEMO_USERS:-false}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: 'no'
+
+  # --------------------------------------------------------------------- #
+  app:
+    build:
+      context: .
+      target: runner
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-portale}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-portale_talenti}?schema=public
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET non impostata in .env.docker}
+      AUTH_URL: ${AUTH_URL:?AUTH_URL non impostata in .env.docker}
+      # Dietro al proxy l'host arriva negli header inoltrati, non dal socket.
+      AUTH_TRUST_HOST: 'true'
+      AUTH_GOOGLE_ID: ${AUTH_GOOGLE_ID:-}
+      AUTH_GOOGLE_SECRET: ${AUTH_GOOGLE_SECRET:-}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      NEXT_PUBLIC_QUESTION_TIMER_SECONDS: ${NEXT_PUBLIC_QUESTION_TIMER_SECONDS:-20}
+    depends_on:
+      db:
+        condition: service_healthy
+      migrazioni:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:3000/login']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    # Nessuna porta pubblicata: ci si arriva solo passando dal proxy.
+
+  # --------------------------------------------------------------------- #
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - '${HTTPS_PORT:-8443}:443'
+      - '${HTTP_PORT:-8080}:80'
+    environment:
+      HTTPS_PORT: ${HTTPS_PORT:-8443}
+      DOMINIO: ${DOMINIO:-}
+      EMAIL_AMMINISTRATORE: ${EMAIL_AMMINISTRATORE:-}
+    volumes:
+      - ${CADDYFILE:-./docker/Caddyfile.interno}:/etc/caddy/Caddyfile:ro
+      # Generati da docker/prepara-certificato.sh prima del primo avvio.
+      - ./certificati:/certificati:ro
+      - caddy-dati:/data
+      - caddy-config:/config
+    depends_on:
+      app:
+        condition: service_started
+
+volumes:
+  dati-postgres:
+  caddy-dati:
+  caddy-config:

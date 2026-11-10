@@ -69,6 +69,7 @@ difficili, quelle per chi gestisce di deleghe, feedback e carichi di lavoro. Non
 | Grafici | **Recharts** | Ciambella e radar, con tabella equivalente per gli screen reader |
 | PDF | **@react-pdf/renderer** | Report generato lato server, senza screenshot del browser |
 | Validazione | **Zod** | Stesso schema per form e Server Actions |
+| Distribuzione | **Docker Compose** + **Caddy** | Stack completo in contenitori; il proxy termina l'HTTPS e pubblica l'unica porta esposta |
 
 ### Perché Server Actions e non API REST
 
@@ -229,6 +230,127 @@ completa l'accesso: l'app funziona comunque con email e password.
 
 ---
 
+## In un contenitore, con HTTPS
+
+Lo stack completo — database, migrazioni, applicazione, proxy HTTPS — sta in
+`docker-compose.yml`. Serve solo Docker con il plugin compose.
+
+### Le porte
+
+**Un solo servizio pubblica qualcosa: il proxy.** L'applicazione e il database
+restano sulla rete interna del compose. Il database in particolare non è
+pubblicato: dall'esterno non si arriva alla 5432, e la password serve solo ai
+contenitori fra loro.
+
+| Variabile | Predefinita | A cosa serve |
+| --- | --- | --- |
+| `HTTPS_PORT` | `8443` | la porta su cui si apre il portale |
+| `HTTP_PORT` | `8080` | solo per rimandare all'HTTPS |
+
+Le predefinite sono alte di proposito: non richiedono privilegi di root e non
+litigano con quello che la macchina ha già in ascolto sulla 80 e sulla 443.
+Con Let's Encrypt devono invece essere esattamente `443` e `80`, perché la
+verifica del dominio passa da lì.
+
+Prima di avviare, controlla che siano libere — se non lo sono, il compose si
+ferma a metà, con il database già creato e il proxy no:
+
+```bash
+bash docker/controlla-porte.sh
+```
+
+Dice chi occupa la porta e propone un'alternativa libera.
+
+### Avvio
+
+```bash
+cp .env.docker.example .env.docker
+```
+
+Compila `.env.docker`: `INDIRIZZO` e `AUTH_URL` con l'indirizzo da cui aprirai
+il portale, `POSTGRES_PASSWORD` e `AUTH_SECRET` con `openssl rand`, e
+`ADMIN_EMAILS` con la tua email. È un file separato da `.env`, che resta
+quello dello sviluppo: i valori non coincidono, perché nel compose il database
+si chiama `db` e non `localhost`.
+
+```bash
+bash docker/prepara-certificato.sh
+```
+
+```bash
+docker compose --env-file .env.docker up -d --build
+```
+
+Il primo avvio costruisce le immagini, applica le migrazioni, semina i dati e
+chiude con la diagnosi. L'applicazione non parte prima che le migrazioni siano
+finite bene, quindi uno schema a metà non viene mai servito:
+
+```bash
+docker compose --env-file .env.docker logs migrazioni
+```
+
+> **`AUTH_URL` deve combaciare con l'indirizzo che userai davvero**, porta
+> compresa: ci si accede, l'autenticazione rimanda a un'altra origine, il
+> cookie di sessione non la segue e il login gira a vuoto senza un errore
+> visibile. Un caso che costa tempo: `https://127.0.0.1:8443` non vale come
+> sinonimo di `https://localhost:8443`, perché Auth.js riscrive `127.0.0.1` in
+> `localhost` e il cookie resta sull'origine di partenza. Metti l'indirizzo
+> che scriverai nella barra del browser.
+
+Poi apri `https://INDIRIZZO:8443`. **Il browser avviserà che non riconosce
+l'emittente del certificato**: è inevitabile e non è un errore, nessuna
+autorità pubblica firma certificati per un indirizzo di rete interna. La
+connessione è cifrata comunque. Accetta una volta e si ricorda.
+
+Per entrare, registrati con l'email che hai messo in `ADMIN_EMAILS`: diventi
+amministratore al primo accesso. Gli utenti dimostrativi con password nota qui
+non vengono creati — `SEED_DEMO_USERS` è `false`, ed è giusto che lo resti su
+un portale pubblicato.
+
+### HTTPS con un certificato vero
+
+Se hai un dominio pubblico che risolve a questa macchina, e le porte 443 e 80
+raggiungibili da internet, Caddy ottiene e rinnova da solo un certificato
+Let's Encrypt e l'avviso del browser sparisce. In `.env.docker`:
+
+```bash
+CADDYFILE="./docker/Caddyfile.letsencrypt"
+DOMINIO="portale.esempio.it"
+EMAIL_AMMINISTRATORE="tua.email@esempio.it"
+HTTPS_PORT="443"
+HTTP_PORT="80"
+AUTH_URL="https://portale.esempio.it"
+```
+
+Non cancellare il volume `caddy-dati`: contiene i certificati, e ricominciare
+da zero a ogni riavvio porta a sbattere contro il limite di richieste di
+Let's Encrypt.
+
+### Aggiornare, fermare, guardare dentro
+
+```bash
+docker compose --env-file .env.docker up -d --build    # aggiorna e riavvia
+docker compose --env-file .env.docker logs -f app      # log dell'applicazione
+docker compose --env-file .env.docker down             # ferma, dati intatti
+```
+
+I dati stanno nel volume `dati-postgres` e sopravvivono a `down` e alle
+ricostruzioni. `down -v` invece li cancella: è l'unico comando da cui stare
+alla larga.
+
+Il contenitore dell'applicazione non scrive su disco — nemmeno il logo
+personalizzato, che sta nel database — quindi è sostituibile in qualsiasi
+momento senza perdere niente.
+
+Un backup del database:
+
+```bash
+docker compose --env-file .env.docker exec -T db \
+  pg_dump -U portale portale_talenti | gzip > backup-$(date +%F).sql.gz
+```
+
+---
+
 ## Aggiornare un'installazione esistente
 
 ```bash
@@ -314,9 +436,21 @@ pg_dump -Fc "$DATABASE_URL" > backup-$(date +%F).dump
 | `python3 scripts/gen_questions.py` | rigenera le banche di item del modello storico |
 | `python3 scripts/mpf/gen_blocchi.py` | rigenera i blocchi della Mappa dei Punti di Forza |
 | `node scripts/e2e.mjs` | smoke test end-to-end (richiede il server avviato) |
+| `bash docker/controlla-porte.sh` | dice se le porte dello stack Docker sono libere e chi le occupa |
+| `bash docker/prepara-certificato.sh` | genera il certificato HTTPS autofirmato del proxy |
 
 `ASSESSMENT=<slug> node scripts/e2e.mjs` sceglie il questionario da compilare
 nello smoke test: serve a coprire entrambi i formati di item.
+
+Lo smoke test gira anche contro lo stack Docker in HTTPS: accetta il
+certificato autofirmato da sé, e `HOST_RESOLVER_RULES` gli permette di usare
+il nome configurato nel portale anche se risponde su un altro indirizzo.
+
+```bash
+BASE_URL="https://10.254.254.90:8443" \
+HOST_RESOLVER_RULES="MAP 10.254.254.90 127.0.0.1" \
+node scripts/e2e.mjs
+```
 
 ---
 
@@ -421,6 +555,10 @@ può solo interrogare sé stesso e non vede i problemi di raggiungibilità.
 | `npx prisma` propone di scaricare `prisma@8.x` | non ci sono `node_modules`: `npx` sta cercando Prisma sul registry invece che in locale. Non accettare (è un major diverso da quello dello schema): fai prima `npm install` |
 | `process.loadEnvFile is not a function` durante il seed | Node più vecchio di 20.12: aggiorna Node |
 | Porta 3000 occupata | `npm run dev -- -p 3001` (e allinea `AUTH_URL`) |
+| Docker: `port is already allocated` | la porta pubblicata è occupata: `bash docker/controlla-porte.sh` dice da chi, poi cambia `HTTPS_PORT` / `HTTP_PORT` e allinea `AUTH_URL` |
+| Docker: il proxy non parte, `cannot load certificate` | non hai lanciato `bash docker/prepara-certificato.sh` prima del primo avvio |
+| Docker: l'accesso rimanda altrove e il login gira a vuoto | `AUTH_URL` non coincide con l'indirizzo che scrivi nel browser, porta compresa. Attenzione: `127.0.0.1` e `localhost` non sono interscambiabili, Auth.js riscrive il primo nel secondo |
+| Docker: il browser rifiuta il certificato senza nemmeno offrire di proseguire | `INDIRIZZO` nel `.env.docker` non è quello con cui apri il portale: correggilo, cancella `certificati/` e rilancia `prepara-certificato.sh` |
 
 Per ripartire da zero sul database:
 

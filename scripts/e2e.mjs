@@ -14,8 +14,26 @@ const BASE = process.env.BASE_URL ?? 'http://localhost:3000';
 const OUT = process.env.OUT_DIR ?? './shots';
 mkdirSync(OUT, { recursive: true });
 
-const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
+// HOST_RESOLVER_RULES permette di puntare al nome configurato nel portale
+// anche quando risponde su un altro indirizzo, per esempio provando lo stack
+// Docker dalla macchina che lo ospita:
+//   HOST_RESOLVER_RULES="MAP 10.254.254.90 127.0.0.1"
+const browser = await chromium.launch({
+  executablePath: process.env.CHROMIUM_PATH || undefined,
+  args: process.env.HOST_RESOLVER_RULES
+    ? [`--host-resolver-rules=${process.env.HOST_RESOLVER_RULES}`]
+    : [],
+});
+// ignoreHTTPSErrors vale per ogni contesto, non solo per il primo: in rete
+// interna il certificato e' autofirmato di necessita', e il test deve poter
+// arrivare all'applicazione da tutti i profili che apre.
+const nuovoContesto = (opzioni = {}) =>
+  browser.newContext({ ignoreHTTPSErrors: true, ...opzioni });
+
+const ctx = await nuovoContesto({
+  viewport: { width: 1280, height: 900 },
+  acceptDownloads: true,
+});
 const page = await ctx.newPage();
 
 const errors = [];
@@ -116,7 +134,7 @@ console.log('  PDF scaricato');
 
 // --- 4. Amministrazione -----------------------------------------------------
 console.log('\n4. Amministrazione');
-const admin = await browser.newContext({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
+const admin = await nuovoContesto({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
 const ap = await admin.newPage();
 await ap.goto(`${BASE}/login`, { waitUntil: 'networkidle' });
 await ap.fill('#email', process.env.ADMIN_EMAIL ?? 'admin@portaletalenti.it');
@@ -135,7 +153,7 @@ check('password temporanea nel formato atteso', /^[A-Za-z0-9]{4}(-[A-Za-z0-9]{4}
 await ap.screenshot({ path: `${OUT}/05-utente-creato.png`, fullPage: true });
 
 // l'account creato deve poter accedere davvero
-const fresh = await browser.newContext();
+const fresh = await nuovoContesto();
 const fp = await fresh.newPage();
 await fp.goto(`${BASE}/login`, { waitUntil: 'networkidle' });
 await fp.fill('#email', created);
@@ -198,7 +216,7 @@ console.log('\n5. Controlli di accesso');
 const own = await page.request.get(`${BASE}/api/report/${ownReportId}/pdf`);
 check('il proprietario scarica il proprio report', own.status(), 200);
 
-const guest = await browser.newContext();
+const guest = await nuovoContesto();
 const gp = await guest.newPage();
 const anonymous = await gp.request.get(`${BASE}/api/report/${ownReportId}/pdf`);
 check('anonimo sul PDF di un report', anonymous.status(), 401);
@@ -206,7 +224,7 @@ await gp.goto(`${BASE}/admin`);
 check('anonimo su /admin viene respinto', gp.url().includes('/login'), true);
 await guest.close();
 
-const demo = await browser.newContext();
+const demo = await nuovoContesto();
 const dp = await demo.newPage();
 await dp.goto(`${BASE}/login`, { waitUntil: 'networkidle' });
 await dp.fill('#email', 'demo@portaletalenti.it');

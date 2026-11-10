@@ -1,0 +1,23 @@
+# Tutto cio' che non serve a costruire l'immagine: tenerlo fuori rende il
+# contesto piccolo e, soprattutto, evita che un .env locale finisca dentro.
+.env
+.env.*
+!.env.example
+!.env.docker.example
+
+node_modules
+.next
+out
+tsconfig.tsbuildinfo
+
+.git
+.gitignore
+.github
+
+docs
+scripts/mpf/affermazioni
+scripts/statements
+*.md
+!README.md
+
+certificati

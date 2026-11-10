@@ -26,6 +26,11 @@ const devOrigins = (process.env.DEV_ORIGINS ?? '')
 const nextConfig = {
   reactStrictMode: true,
 
+  // Raccoglie in .next/standalone il server piu' le sole dipendenze che il
+  // tracing trova davvero usate: e' quello che l'immagine Docker copia, cosi'
+  // il contenitore non porta dentro node_modules per intero.
+  output: 'standalone',
+
   // Se il progetto è annidato dentro un'altra cartella che contiene un
   // package-lock.json, Next sceglie quella come radice del workspace e avvisa.
   // Fissandola qui il file tracing è sempre corretto e l'avviso sparisce.

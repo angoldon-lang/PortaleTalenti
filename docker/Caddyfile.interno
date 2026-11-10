@@ -1,0 +1,41 @@
+# HTTPS con certificato autofirmato, per un indirizzo di rete interna.
+#
+# Il browser avvisa che non riconosce l'emittente: e' inevitabile, nessuna
+# autorita' pubblica firma certificati per un IP privato. La connessione e'
+# comunque cifrata. Con un dominio pubblico usa Caddyfile.letsencrypt.
+#
+# auto_https off: altrimenti Caddy tenterebbe Let's Encrypt da solo e
+# fallirebbe in loop, non essendo questo indirizzo raggiungibile da fuori.
+
+{
+	admin off
+	auto_https off
+	servers {
+		# Caddy sta dietro alla pubblicazione delle porte di Docker: l'IP del
+		# client va letto, altrimenti nei log compare sempre quello del bridge.
+		trusted_proxies static 0.0.0.0/0 ::/0
+	}
+}
+
+# La porta esterna la decide il compose: qui dentro restano 80 e 443.
+:443 {
+	tls /certificati/portale.crt /certificati/portale.key
+
+	encode zstd gzip
+
+	# Host e X-Forwarded-* passano cosi' come arrivano: Auth.js ne ha bisogno
+	# per costruire gli URL di ritorno, e Next per validare le Server Actions.
+	reverse_proxy app:3000 {
+		header_up X-Forwarded-Port {$HTTPS_PORT}
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
+
+:80 {
+	# Rimanda all'HTTPS mantenendo la porta pubblicata, che non e' la 443.
+	redir https://{host}:{$HTTPS_PORT}{uri} permanent
+}

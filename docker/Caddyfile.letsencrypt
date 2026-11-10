@@ -1,0 +1,28 @@
+# HTTPS con certificato vero, emesso da Let's Encrypt.
+#
+# Serve che siano tutte vere tre condizioni, altrimenti l'emissione fallisce:
+#   1. DOMINIO e' un nome pubblico che risolve all'IP di questa macchina
+#   2. le porte 80 e 443 pubbliche arrivano qui (HTTP_PORT=80, HTTPS_PORT=443)
+#   3. la macchina raggiunge acme-v02.api.letsencrypt.org
+#
+# Caddy rinnova da solo. I certificati stanno nel volume caddy-dati: non
+# cancellarlo, o a ogni riavvio si ricomincia e si rischia il limite di
+# richieste di Let's Encrypt.
+
+{
+	admin off
+	email {$EMAIL_AMMINISTRATORE}
+	servers {
+		trusted_proxies static 0.0.0.0/0 ::/0
+	}
+}
+
+{$DOMINIO} {
+	encode zstd gzip
+	reverse_proxy app:3000
+
+	log {
+		output stdout
+		format console
+	}
+}
