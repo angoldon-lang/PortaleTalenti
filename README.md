@@ -233,7 +233,63 @@ completa l'accesso: l'app funziona comunque con email e password.
 ## In un contenitore, con HTTPS
 
 Lo stack completo — database, migrazioni, applicazione, proxy HTTPS — sta in
-`docker-compose.yml`. Serve solo Docker con il plugin compose.
+`docker-compose.yml`. Serve solo Docker con il plugin compose: **Node, npm e
+PostgreSQL non vanno installati sulla macchina**, stanno dentro le immagini.
+
+### Su un server Ubuntu, da zero
+
+Non usare `apt install docker.io`: non porta il plugin compose, e lo stack ne
+ha bisogno. Vanno i pacchetti ufficiali di Docker.
+
+```bash
+sudo apt update && sudo apt install -y ca-certificates curl git openssl
+```
+
+```bash
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" |
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+```bash
+sudo apt update && sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+Verifica che ci siano entrambi — il secondo comando deve dire `v2.x` o
+successiva, altrimenti il plugin non è installato:
+
+```bash
+docker --version && docker compose version
+```
+
+Per non lavorare da `root`, aggiungi il tuo utente al gruppo `docker`. Serve
+riaprire la sessione perché il gruppo diventi effettivo:
+
+```bash
+sudo usermod -aG docker "$USER" && newgrp docker
+```
+
+Poi il progetto, in una cartella sotto `/opt` invece che nella radice:
+
+```bash
+sudo mkdir -p /opt/portaletalenti && sudo chown "$USER" /opt/portaletalenti
+git clone https://github.com/angoldon-lang/PortaleTalenti.git /opt/portaletalenti
+cd /opt/portaletalenti
+git checkout claude/cliftonstrengths-portal-gnrawh
+```
+
+Se il firewall è attivo, apri la porta HTTPS che hai scelto (qui la
+predefinita). Senza, il portale risponde solo dalla macchina stessa:
+
+```bash
+sudo ufw status && sudo ufw allow 8443/tcp
+```
+
+Da qui in avanti vale la procedura comune descritta sotto. Per far ripartire
+lo stack da solo dopo un riavvio del server non serve altro: i servizi hanno
+`restart: unless-stopped` e Docker si avvia da sé all'accensione.
 
 ### Le porte
 
